@@ -1,0 +1,79 @@
+import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
+import { CartService } from '../../../core/services/cart.service';
+
+@Component({
+  selector: 'app-cart-sidebar',
+  standalone: true,
+  imports: [CommonModule, RouterLink],
+  template: `
+    <div *ngIf="cartService.isOpen()" (click)="cartService.closeCart()" 
+         class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] animate-fade-in cursor-pointer"></div>
+
+    <div class="fixed top-0 right-0 h-full w-full max-w-md bg-card border-l border-theme shadow-2xl z-[210] transform transition-transform duration-300 ease-out flex flex-col"
+         [class.translate-x-0]="cartService.isOpen()"
+         [class.translate-x-full]="!cartService.isOpen()">
+      
+      <div class="p-5 border-b border-theme flex justify-between items-center bg-input/50">
+        <h2 class="text-xl font-black text-main flex items-center gap-2">
+          <i class="ri-shopping-bag-3-fill text-primary"></i> Tu Carrito
+          <span class="text-xs bg-primary text-white px-2 py-0.5 rounded-full">{{ cartService.count() }}</span>
+        </h2>
+        <button (click)="cartService.closeCart()" class="w-8 h-8 rounded-full bg-card border border-theme hover:bg-red-50 hover:text-red-500 flex items-center justify-center transition-colors cursor-pointer">
+          <i class="ri-close-line text-xl"></i>
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-5 space-y-4">
+        
+        <div *ngIf="cartService.cartItems().length === 0" class="h-full flex flex-col items-center justify-center text-center opacity-60">
+           <div class="w-20 h-20 bg-input rounded-full flex items-center justify-center mb-4">
+              <i class="ri-shopping-cart-line text-4xl text-muted"></i>
+           </div>
+           <p class="text-lg font-bold text-main">Vacío</p>
+           <button (click)="cartService.closeCart()" class="mt-4 text-primary font-bold hover:underline">Comprar algo</button>
+        </div>
+
+        <div *ngFor="let item of cartService.cartItems()" class="flex gap-4 bg-input/30 p-3 rounded-2xl border border-theme animate-fade-in-up hover:border-primary/30 transition-colors">
+           <div class="w-20 h-20 bg-white rounded-xl p-2 shrink-0 border border-theme flex items-center justify-center">
+             <img [src]="item.imagenUrl || 'https://via.placeholder.com/80'" class="max-h-full object-contain">
+           </div>
+           <div class="flex-1 min-w-0 flex flex-col justify-between">
+             <div>
+               <h4 class="font-bold text-main text-sm line-clamp-2">{{ item.nombre }}</h4>
+               <p class="text-[10px] text-muted uppercase font-bold mt-1">S/ {{ item.precio }} x {{ item.cantidad }}</p>
+             </div>
+             <div class="flex justify-end">
+                 <button (click)="removeItem(item.productoId || item.id)" class="text-red-400 hover:text-red-600 text-[10px] font-bold uppercase cursor-pointer hover:underline">Eliminar</button>
+             </div>
+           </div>
+        </div>
+      </div>
+
+      <div *ngIf="cartService.cartItems().length > 0" class="p-6 border-t border-theme bg-card shadow-[0_-5px_30px_rgba(0,0,0,0.1)] z-10">
+         <div class="flex justify-between items-end mb-4">
+           <span class="text-muted font-bold text-sm">Total</span>
+           <span class="text-3xl font-black text-main">S/ {{ cartService.total() | number:'1.2-2' }}</span>
+         </div>
+         <button routerLink="/checkout" (click)="cartService.closeCart()" 
+                 class="w-full bg-gradient-to-r from-primary to-secondary text-white font-bold py-4 rounded-xl shadow-lg hover:-translate-y-1 transition-all flex items-center justify-center gap-2">
+           Pagar Ahora <i class="ri-arrow-right-line"></i>
+         </button>
+      </div>
+    </div>
+  `,
+  styles: [`
+    .animate-fade-in { animation: fadeIn 0.3s ease-out; }
+    .animate-fade-in-up { animation: fadeInUp 0.3s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  `]
+})
+export class CartSidebarComponent {
+  public cartService = inject(CartService);
+
+  removeItem(id: number) {
+    this.cartService.removeFromCart(id);
+  }
+}

@@ -1,1 +1,103 @@
-/* You can add global styles to this file, and also import other style files */
+@import "tailwindcss";
+
+@theme {
+    --font-sans: 'Inter', system-ui, sans-serif;
+
+    /* COLORES DE MARCA */
+    --color-primary: #0ea5e9;
+    --color-secondary: #0284c7;
+    --color-accent: #38bdf8;
+    --color-success: #10b981;
+    --color-error: #ef4444;
+    --color-warning: #f59e0b;
+}
+
+/* MODO CLARO */
+:root {
+    --bg-main: #f1f5f9;
+    --bg-card: #ffffff;
+    --bg-input: #f8fafc;
+    --bg-hover: #e2e8f0;
+
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --text-invert: #ffffff;
+
+    --border-color: #cbd5e1;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+/* MODO OSCURO */
+.dark {
+    --bg-main: #020617;
+    --bg-card: #0f172a;
+    --bg-input: #1e293b;
+    --bg-hover: #334155;
+    --text-main: #f1f5f9;
+    --text-muted: #94a3b8;
+    --text-invert: #ffffff;
+    --border-color: #1e293b;
+    --shadow-sm: none;
+    --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.5);
+}
+
+/* APLICACIÓN GLOBAL */
+body {
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    font-family: var(--font-sans);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+
+@utility bg-main {
+    background-color: var(--bg-main);
+}
+
+@utility bg-card {
+    background-color: var(--bg-card);
+}
+
+@utility bg-input {
+    background-color: var(--bg-input);
+}
+
+@utility bg-hover {
+    background-color: var(--bg-hover);
+}
+
+@utility text-main {
+    color: var(--text-main);
+}
+
+@utility text-muted {
+    color: var(--text-muted);
+}
+
+@utility text-invert {
+    color: var(--text-invert);
+}
+
+@utility border-theme {
+    border-color: var(--border-color);
+}
+
+
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-main);
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--border-color);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--text-muted);
+}

@@ -1,0 +1,111 @@
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
+
+@Component({
+  selector: 'app-about',
+  standalone: true,
+  imports: [CommonModule, PageHeaderComponent, RouterLink],
+  template: `
+    <app-page-layout 
+        title="Sobre Nosotros" 
+        subtitle="Nuestra Historia"
+        bgImage="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80">
+        
+        <div class="max-w-6xl mx-auto space-y-24">
+             
+             <div class="grid md:grid-cols-2 gap-12 items-center">
+                <div class="space-y-6 order-2 md:order-1">
+                    <span class="text-primary font-bold tracking-wider text-sm uppercase">Desde 2024</span>
+                    <h2 class="text-3xl md:text-4xl font-black text-main leading-tight">
+                        No somos solo una tienda. Somos <span class="text-primary">entusiastas</span>.
+                    </h2>
+                    <p class="text-muted text-lg leading-relaxed">
+                        GlobiShop nació de una frustración común: lo difícil que era conseguir hardware de alta gama en Perú sin pagar precios exorbitantes o esperar semanas por un envío internacional.
+                    </p>
+                    <p class="text-muted leading-relaxed">
+                        Empezamos en una pequeña oficina en Lima con una misión clara: <b>democratizar el acceso a la tecnología</b>. Hoy, ayudamos a miles de gamers, desarrolladores y creativos a construir los setups de sus sueños.
+                    </p>
+                    
+                    <div class="border-l-4 border-primary pl-4 py-2 mt-4 italic text-main font-medium">
+                        "La tecnología no es un lujo, es la herramienta con la que construimos el futuro."
+                    </div>
+                </div>
+                
+                <div class="order-1 md:order-2 relative group">
+                    <div class="absolute -inset-4 bg-gradient-to-tr from-primary to-secondary rounded-3xl opacity-20 group-hover:opacity-40 blur-xl transition-opacity duration-500"></div>
+                    <img src="https://images.unsplash.com/photo-1553877622-78e5b2dee92c?q=80&w=1000&auto=format&fit=crop" 
+                         class="relative rounded-2xl shadow-2xl border border-theme w-full h-auto object-cover transform transition-transform duration-700 hover:scale-[1.02]">
+                </div>
+             </div>
+
+             <div class="bg-card border border-theme rounded-3xl p-10 shadow-sm relative overflow-hidden">
+                <div class="absolute top-0 right-0 -mt-10 -mr-10 w-40 h-40 bg-primary/5 rounded-full blur-3xl"></div>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center relative z-10">
+                    <div class="space-y-2">
+                        <h3 class="text-4xl md:text-5xl font-black text-main">15k<span class="text-primary">+</span></h3>
+                        <p class="text-xs uppercase tracking-widest text-muted font-bold">Clientes</p>
+                    </div>
+                    <div class="space-y-2">
+                        <h3 class="text-4xl md:text-5xl font-black text-main">98<span class="text-primary">%</span></h3>
+                        <p class="text-xs uppercase tracking-widest text-muted font-bold">Satisfacción</p>
+                    </div>
+                    <div class="space-y-2">
+                        <h3 class="text-4xl md:text-5xl font-black text-main">24<span class="text-primary">h</span></h3>
+                        <p class="text-xs uppercase tracking-widest text-muted font-bold">Envíos Lima</p>
+                    </div>
+                    <div class="space-y-2">
+                        <h3 class="text-4xl md:text-5xl font-black text-main">3k<span class="text-primary">+</span></h3>
+                        <p class="text-xs uppercase tracking-widest text-muted font-bold">Productos</p>
+                    </div>
+                </div>
+             </div>
+
+             <div class="space-y-12">
+                <div class="text-center max-w-2xl mx-auto">
+                    <h2 class="text-3xl font-black text-main mb-4">Lo que nos mueve</h2>
+                    <p class="text-muted">Nuestros principios no son negociables. Son la base de cada decisión que tomamos.</p>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-8">
+                     <div class="bg-card hover:bg-input border border-theme p-8 rounded-2xl transition-all hover:-translate-y-2 hover:shadow-lg group cursor-default">
+                        <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">
+                            <i class="ri-shield-check-line"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-main mb-3">Transparencia Radical</h3>
+                        <p class="text-sm text-muted leading-relaxed">Sin letras pequeñas. Precios finales incluidos IGV. Garantías reales que sí se cumplen.</p>
+                     </div>
+
+                     <div class="bg-card hover:bg-input border border-theme p-8 rounded-2xl transition-all hover:-translate-y-2 hover:shadow-lg group cursor-default">
+                        <div class="w-14 h-14 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">
+                            <i class="ri-lightbulb-flash-line"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-main mb-3">Obsesión por la Calidad</h3>
+                        <p class="text-sm text-muted leading-relaxed">Solo vendemos lo que nosotros mismos usaríamos. Curamos nuestro catálogo minuciosamente.</p>
+                     </div>
+
+                     <div class="bg-card hover:bg-input border border-theme p-8 rounded-2xl transition-all hover:-translate-y-2 hover:shadow-lg group cursor-default">
+                        <div class="w-14 h-14 bg-green-100 text-green-600 rounded-xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition-transform">
+                            <i class="ri-customer-service-2-line"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-main mb-3">Soporte Humano</h3>
+                        <p class="text-sm text-muted leading-relaxed">Nada de bots que dan vueltas. Hablas con expertos que entienden de hardware.</p>
+                     </div>
+                </div>
+             </div>
+
+             <div class="bg-main border-y border-theme py-16 text-center">
+                 <h2 class="text-3xl font-black text-main mb-6">¿Listo para el upgrade?</h2>
+                 <a routerLink="/products" class="inline-flex items-center gap-2 px-8 py-4 bg-primary hover:bg-secondary text-white font-bold rounded-xl shadow-lg hover:shadow-primary/30 transition-all hover:-translate-y-1">
+                    Ver Catálogo Completo <i class="ri-arrow-right-line"></i>
+                 </a>
+             </div>
+
+        </div>
+
+    </app-page-layout>
+  `
+})
+export class AboutComponent { }
