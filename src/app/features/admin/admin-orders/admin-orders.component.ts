@@ -228,23 +228,52 @@ import Swal from 'sweetalert2';
     </div>
   `,
   styles: [`
-    .animate-fade-in-up { animation: fadeInUp 0.5s ease-out forwards; }
-    .animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-    @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
-    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .animate-fade-in-up {
+      animation: fadeInUp 0.5s ease-out forwards;
+    }
+    .animate-slide-up {
+      animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
   `]
 })
 export class AdminOrdersComponent implements OnInit {
+  // INYECCION DE DEPENDENCIAS :V
   private adminService = inject(AdminService);
 
+  // VARIABLES DE DATOS Y PAGINACION XD
   orders: any[] = [];
   statuses: any[] = [];
   currentPage = 1;
   itemsPerPage = 10;
 
+  // VARIABLES PARA EL MODAL DE DETALLE
   selectedOrder: any = null;
   orderDetails: any[] = [];
   loadingDetails = false;
@@ -254,6 +283,7 @@ export class AdminOrdersComponent implements OnInit {
   }
 
   loadData() {
+    // LLAMA AL SERVICIO Y ORDENA LOS PEDIDOS POR FECHA (MAS NUEVO ARRIBA) :D
     this.adminService.getOrders().subscribe({
       next: (data) => {
         this.orders = data.sort((a, b) => new Date(b.fechaPedido).getTime() - new Date(a.fechaPedido).getTime());
@@ -261,9 +291,11 @@ export class AdminOrdersComponent implements OnInit {
       },
       error: (err) => console.error("Error cargando pedidos:", err)
     });
+    // CARGA LOS ESTADOS POSIBLES (PENDIENTE, ENVIADO, ETC)
     this.adminService.getOrderStatuses().subscribe(data => this.statuses = data);
   }
 
+  // OBTIENE EL NOMBRE DEL CLIENTE MANEJANDO DIFERENTES ESTRUCTURAS DE JSON :P
   getClientName(order: any): string {
     if (!order) return 'Desconocido';
 
@@ -278,21 +310,25 @@ export class AdminOrdersComponent implements OnInit {
     return 'Cliente Visitante';
   }
 
+  // SACA LA PRIMERA LETRA PARA EL AVATAR CIRCULAR
   getClientInitial(order: any): string {
     const name = this.getClientName(order);
     return name.charAt(0).toUpperCase();
   }
 
+  // LOGICA DE PAGINACION EN EL FRONTEND (CALCULA PAGINAS Y CORTA EL ARRAY) XD
   get totalPages() { return Math.ceil(this.orders.length / this.itemsPerPage) || 1; }
   get paginatedOrders() { const start = (this.currentPage - 1) * this.itemsPerPage; return this.orders.slice(start, start + this.itemsPerPage); }
 
   changePage(page: number) {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
+      // SUBE EL SCROLL AL CAMBIAR DE PAGINA
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
 
+  // ASIGNA COLORES (CLASES CSS) SEGUN EL TEXTO DEL ESTADO :V
   getStatusColor(statusName: string): string {
     const name = statusName?.toLowerCase() || '';
     if (name === 'pendiente') return 'bg-yellow-100 text-yellow-700 ring-1 ring-yellow-600/30';
@@ -303,28 +339,35 @@ export class AdminOrdersComponent implements OnInit {
     return 'bg-gray-100 text-gray-600 ring-1 ring-gray-400/30';
   }
 
+  // ACTUALIZA EL ESTADO DEL PEDIDO EN BASE DE DATOS
   changeStatus(order: any, newStatusId: string) {
     const id = Number(newStatusId);
-    const oldStatus = order.estado;
+    const oldStatus = order.estado; // GUARDAMOS EL ESTADO VIEJO POR SI FALLA LA PETICION
+
     this.adminService.updateOrderStatus(order.pedidoId, id).subscribe({
       next: () => {
+        // NOTIFICACION FLOTANTE DE EXITO
         const Toast = Swal.mixin({ toast: true, position: 'bottom-end', showConfirmButton: false, timer: 2000, background: 'var(--bg-card)', color: 'var(--text-main)' });
         Toast.fire({ icon: 'success', title: 'Estado actualizado' });
+
+        // ACTUALIZAMOS EL OBJETO LOCALMENTE PARA QUE SE VEA EL CAMBIO :D
         const newStatusObj = this.statuses.find(s => s.estadoId === id);
         if (newStatusObj) order.estado = newStatusObj;
       },
       error: () => {
+        // SI FALLA, REVERTIMOS EL CAMBIO VISUALMENTE
         Swal.fire('Error', 'No se pudo cambiar el estado', 'error');
         order.estado = oldStatus;
       }
     });
   }
 
+  // ABRE EL MODAL Y CARGA LOS DETALLES DEL PEDIDO SELECCIONADO XD
   openDetails(order: any) {
     this.selectedOrder = order;
     this.orderDetails = [];
     this.loadingDetails = true;
-    document.body.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden'; // BLOQUEA SCROLL DEL BODY
 
     this.adminService.getOrderDetails(order.pedidoId).subscribe({
       next: (data) => {
@@ -337,6 +380,6 @@ export class AdminOrdersComponent implements OnInit {
 
   closeDetails() {
     this.selectedOrder = null;
-    document.body.style.overflow = 'auto';
+    document.body.style.overflow = 'auto'; // DEVUELVE EL SCROLL
   }
 }

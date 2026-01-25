@@ -152,40 +152,61 @@ import Swal from 'sweetalert2';
     </div>
   `,
   styles: [`
-    .animate-fade-in-up { animation: fadeInUp 0.5s ease-out forwards; }
-    @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-fade-in-up {
+      animation: fadeInUp 0.5s ease-out forwards;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   `]
 })
 export class AdminUsersComponent implements OnInit {
+  // INYECCION DEL SERVICIO DE ADMINISTRADOR :D
   private adminService = inject(AdminService);
+
+  // ARRAY PARA ALMACENAR LA LISTA DE USUARIOS
   users: any[] = [];
 
   ngOnInit() {
+    // CARGA LA DATA APENAS SE INICIA EL COMPONENTE
     this.loadData();
   }
 
   loadData() {
+    // LLAMA AL BACKEND PARA OBTENER TODOS LOS USUARIOS REGISTRADOS
     this.adminService.getUsers().subscribe(data => this.users = data);
   }
 
+  // DEVUELVE EL COLOR DEL FONDO/BORDE SEGUN EL NIVEL DE FIDELIDAD (ORO, PLATA, ETC) :V
   getNivelColor(nivelName: string): string {
     const name = nivelName?.toLowerCase() || '';
-    if (name.includes('oro')) return 'bg-yellow-100 text-yellow-600 border border-yellow-200';
-    if (name.includes('plata')) return 'bg-slate-200 text-slate-600 border border-slate-300';
-    if (name.includes('diamante')) return 'bg-cyan-100 text-cyan-600 border border-cyan-200';
+    if (name.includes('oro'))
+      return 'bg-yellow-100 text-yellow-600 border border-yellow-200';
+    if (name.includes('plata'))
+      return 'bg-slate-200 text-slate-600 border border-slate-300';
+    if (name.includes('diamante'))
+      return 'bg-cyan-100 text-cyan-600 border border-cyan-200';
+    // POR DEFECTO RETORNA COLOR BRONCE
     return 'bg-orange-100 text-orange-700 border border-orange-200';
   }
 
+  // DEVUELVE EL COLOR DEL TEXTO ESPECIFICO PARA EL ICONO DEL TROFEO
   getNivelTextColor(nivelName: string): string {
     const name = nivelName?.toLowerCase() || '';
-    if (name.includes('oro')) return 'text-yellow-500';
-    if (name.includes('plata')) return 'text-slate-400';
-    if (name.includes('diamante')) return 'text-cyan-500';
+    if (name.includes('oro'))
+      return 'text-yellow-500';
+    if (name.includes('plata'))
+      return 'text-slate-400';
+    if (name.includes('diamante'))
+      return 'text-cyan-500';
     return 'text-orange-600';
   }
 
+  // BOTON PRINCIPAL DE ACCION: DECIDE SI PEDIR CONFIRMACION O NO XD
   toggleStatus(user: any) {
     if (user.estaActivo) {
+      // SI ESTA ACTIVO Y LO VAS A BLOQUEAR, MUESTRA ALERTA DE PRECAUCION
       Swal.fire({
         title: '¿Bloquear usuario?',
         text: "Este usuario perderá acceso inmediato a la tienda.",
@@ -198,25 +219,38 @@ export class AdminUsersComponent implements OnInit {
         background: 'var(--bg-card)',
         color: 'var(--text-main)'
       }).then((result) => {
+        // SI CONFIRMA, PROCEDEMOS A BLOQUEARLO
         if (result.isConfirmed) this.executeToggle(user);
       });
     } else {
+      // SI ESTA BLOQUEADO Y LO VAS A ACTIVAR, LO HACE DIRECTO SIN PREGUNTAR :P
       this.executeToggle(user);
     }
   }
 
+  // LOGICA REAL QUE LLAMA AL BACKEND PARA CAMBIAR EL ESTADO
   executeToggle(user: any) {
-    const id = user.userId || user.id;
+    const id = user.userId || user.id; // MANEJO DE ID SEGURO
+
     this.adminService.toggleUserStatus(id).subscribe({
       next: (res) => {
+        // CONFIGURACION DEL TOAST (NOTIFICACION PEQUEÑA)
         const Toast = Swal.mixin({ toast: true, position: 'bottom-end', showConfirmButton: false, timer: 2000, background: 'var(--bg-card)', color: 'var(--text-main)' });
 
+        // MENSAJE PERSONALIZADO SEGUN LA ACCION REALIZADA
         if (!user.estaActivo) {
-          Toast.fire({ icon: 'success', title: 'Usuario activado exitosamente' });
+          Toast.fire({
+            icon: 'success',
+            title: 'Usuario activado exitosamente'
+          });
         } else {
-          Toast.fire({ icon: 'warning', title: 'Usuario bloqueado' });
+          Toast.fire({
+            icon: 'warning',
+            title: 'Usuario bloqueado'
+          });
         }
 
+        // CAMBIA EL ESTADO VISUALMENTE EN LA TABLA SIN RECARGAR
         user.estaActivo = !user.estaActivo;
       },
       error: (err) => Swal.fire('Error', err.error?.message || 'No se pudo cambiar el estado', 'error')

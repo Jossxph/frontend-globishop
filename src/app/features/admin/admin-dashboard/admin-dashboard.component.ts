@@ -159,29 +159,50 @@ import { AdminService } from '../../../core/services/admin.service';
   `,
   styles: [`
     @keyframes fade-in-up {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+      from { 
+        opacity: 0; 
+        transform: translateY(20px); 
+      }
+      to { 
+        opacity: 1; 
+        transform: translateY(0); 
+      }
     }
-    .animate-fade-in-up { animation: fade-in-up 0.5s ease-out forwards; }
+    .animate-fade-in-up { 
+      animation: fade-in-up 0.5s ease-out forwards; 
+    }
   `]
 })
 export class AdminDashboardComponent implements OnInit {
+  // INYECCION DEL SERVICIO DE ADMINISTRADOR
   private adminService = inject(AdminService);
+
+  // OBJETO PARA ALMACENAR LAS ESTADISTICAS DEL DASHBOARD
   stats: any = {};
+
+  // BANDERA PARA MOSTRAR SKELETON O SPINNER MIENTRAS CARGA
   isLoading = true;
 
   ngOnInit() {
+    // INICIA LA CARGA DE DATOS AL MONTAR EL COMPONENTE
     this.loadStats();
   }
 
   loadStats() {
+    // ACTIVA ESTADO DE CARGA
     this.isLoading = true;
+
+    // LLAMADA AL BACKEND PARA OBTENER RESUMEN (VENTAS, USUARIOS, ETC)
     this.adminService.getStats().subscribe({
       next: (data) => {
+        // ASIGNA LOS DATOS RECIBIDOS A LA VARIABLE LOCAL
         this.stats = data;
+
+        // PEQUEÑO RETARDO ARTIFICIAL PARA QUE LA ANIMACION NO SEA BRUSCA
         setTimeout(() => this.isLoading = false, 500);
       },
       error: (err) => {
+        // SI FALLA, MUESTRA ERROR EN CONSOLA Y PONE VALORES EN CERO PARA EVITAR ERRORES EN LA VISTA
         console.error('Error cargando stats:', err);
         this.isLoading = false;
         this.stats = { ingresosTotales: 0, totalPedidos: 0, totalUsuarios: 0, totalProductos: 0 };

@@ -148,46 +148,70 @@ import { filter } from 'rxjs/operators';
     </div>
   `,
   styles: [`
-    .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .animate-fade-in { 
+      animation: fadeIn 0.3s ease-out forwards; 
+    }
+    @keyframes fadeIn { 
+      from { opacity: 0; } 
+      to { opacity: 1; } 
+    }
     
-    .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
-    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+    .custom-scrollbar::-webkit-scrollbar { 
+      width: 5px; 
+      height: 5px; 
+    }
+    .custom-scrollbar::-webkit-scrollbar-track { 
+      background: transparent; 
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb { 
+      background: var(--border-color); 
+      border-radius: 4px; 
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { 
+      background: var(--text-muted); 
+    }
   `]
 })
 export class AdminLayoutComponent {
+  // INYECCION DE DEPENDENCIAS
   public authService = inject(AuthService);
   private router = inject(Router);
 
+  // VARIABLE PARA CONTROLAR SI EL MENU LATERAL ESTA VISIBLE EN MOVIL
   isSidebarOpen = false;
 
   constructor() {
+    // ESCUCHA CADA VEZ QUE CAMBIA LA RUTA (NAVEGACION)
     this.router.events.pipe(
       filter(event => event instanceof NavigationEnd)
     ).subscribe(() => {
+      // CIERRA AUTOMATICAMENTE EL SIDEBAR AL CAMBIAR DE PAGINA :D
       this.isSidebarOpen = false;
     });
   }
 
+  // INTERCAMBIA EL ESTADO DEL SIDEBAR (ABRIR/CERRAR)
   toggleSidebar() {
     this.isSidebarOpen = !this.isSidebarOpen;
   }
 
+  // LOGICA PARA CERRAR EL MENU SOLO SI ESTAMOS EN PANTALLA DE MOVIL (<1024PX)
   closeSidebarOnMobile() {
     if (window.innerWidth < 1024) {
       this.isSidebarOpen = false;
     }
   }
 
+  // CIERRA LA SESION Y MANDA AL USUARIO AL LOGIN DE VUELTA
   logout() {
     this.authService.logout();
     this.router.navigate(['/auth/login']);
   }
 
+  // EXTRAE LA PRIMERA LETRA DEL NOMBRE PARA MOSTRAR EN EL AVATAR
   getUserInitial(): string {
     const nombre = this.authService.getUser()?.nombre;
+    // SI HAY NOMBRE DEVUELVE LA INICIAL, SI NO, PONE UNA 'A' POR DEFECTO
     return nombre ? nombre.charAt(0).toUpperCase() : 'A';
   }
 }

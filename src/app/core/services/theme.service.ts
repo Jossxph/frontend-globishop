@@ -1,3 +1,5 @@
+// NO SE USA:D
+
 import { Injectable, signal } from '@angular/core';
 
 @Injectable({

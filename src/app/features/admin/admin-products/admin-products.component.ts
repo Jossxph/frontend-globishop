@@ -237,58 +237,97 @@ import Swal from 'sweetalert2';
     </div>
   `,
   styles: [`
-    .animate-fade-in-up { animation: fadeInUp 0.5s ease-out forwards; }
-    .animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-    @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
-    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
+    .animate-fade-in-up {
+      animation: fadeInUp 0.5s ease-out forwards;
+    }
+    .animate-slide-up {
+      animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: var(--border-color);
+      border-radius: 10px;
+    }
   `]
 })
 export class AdminProductsComponent implements OnInit {
+  // INYECCION DE DEPENDENCIAS: SERVICIO DE DATOS Y CONSTRUCTOR DE FORMULARIOS :V
   private adminService = inject(AdminService);
   private fb = inject(FormBuilder);
 
+  // ARRAYS PARA ALMACENAR LA DATA QUE VIENE DEL BACKEND
   products: any[] = [];
   categories: any[] = [];
 
+  // VARIABLES PARA LA PAGINACION LOCAL
   currentPage = 1;
   itemsPerPage = 10;
 
+  // ESTADO DEL MODAL Y EDICION
   isModalOpen = false;
-  isEditing = false;
-  currentId: number | null = null;
+  isEditing = false; // TRUE SI ESTAMOS EDITANDO, FALSE SI ES NUEVO
+  currentId: number | null = null; // ID DEL PRODUCTO QUE SE ESTA EDITANDO
 
+  // DEFINICION DEL FORMULARIO CON VALIDACIONES STRICTAS XD
   productForm: FormGroup = this.fb.group({
     nombre: ['', Validators.required],
     descripcion: ['', Validators.required],
-    precio: [0, [Validators.required, Validators.min(0)]],
+    precio: [0, [Validators.required, Validators.min(0)]], // NO ACEPTA NEGATIVOS
     stock: [0, [Validators.required, Validators.min(0)]],
-    categoriaId: [null, Validators.required],
+    categoriaId: [null, Validators.required], // OBLIGATORIO ELEGIR CATEGORIA
     imagenUrl: [''],
     esNuevo: [false],
     esDestacado: [false]
   });
 
   ngOnInit() {
+    // CARGA DATOS INICIALES AL ENTRAR A LA PAGINA
     this.loadData();
   }
 
   loadData() {
+    // LLAMADAS EN PARALELO PARA TRAER PRODUCTOS Y CATEGORIAS :D
     this.adminService.getProducts().subscribe(data => this.products = data);
     this.adminService.getCategories().subscribe(data => this.categories = data);
   }
 
+  // CALCULA CUANTAS PAGINAS TOTALES HAY BASADO EN LA CANTIDAD DE PRODUCTOS
   get totalPages() {
     return Math.ceil(this.products.length / this.itemsPerPage) || 1;
   }
 
+  // LOGICA DE CORTE: DEVUELVE SOLO LOS PRODUCTOS DE LA PAGINA ACTUAL
   get paginatedProducts() {
     const start = (this.currentPage - 1) * this.itemsPerPage;
     return this.products.slice(start, start + this.itemsPerPage);
   }
 
+  // CAMBIA DE PAGINA Y HACE SCROLL HACIA ARRIBA SUAVEMENTE
   changePage(page: number) {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
@@ -296,11 +335,13 @@ export class AdminProductsComponent implements OnInit {
     }
   }
 
+  // ABRE EL MODAL: SIRVE TANTO PARA CREAR COMO PARA EDITAR :P
   openModal(product: any = null) {
     this.isModalOpen = true;
-    document.body.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden'; // BLOQUEA SCROLL DEL FONDO
 
     if (product) {
+      // MODO EDICION: LLENAMOS EL FORMULARIO CON LOS DATOS DE LA FILA XD
       this.isEditing = true;
       this.currentId = product.productoId || product.id;
       this.productForm.patchValue({
@@ -308,12 +349,14 @@ export class AdminProductsComponent implements OnInit {
         descripcion: product.descripcion,
         precio: product.precio,
         stock: product.stock,
+        // MANEJO SEGURO DEL OBJETO CATEGORIA PARA SACAR EL ID
         categoriaId: product.categoria?.categoriaId || product.categoria?.id,
         imagenUrl: product.imagenUrl,
         esNuevo: product.esNuevo,
         esDestacado: product.esDestacado
       });
     } else {
+      // MODO CREACION: LIMPIAMOS EL FORMULARIO PARA EMPEZAR DE CERO
       this.isEditing = false;
       this.currentId = null;
       this.productForm.reset({ precio: 0, stock: 0, esNuevo: false, esDestacado: false });
@@ -322,26 +365,32 @@ export class AdminProductsComponent implements OnInit {
 
   closeModal() {
     this.isModalOpen = false;
-    document.body.style.overflow = 'auto';
+    document.body.style.overflow = 'auto'; // DESBLOQUEA EL SCROLL
   }
 
+  // BOTON GUARDAR: EL CEREBRO DE LA OPERACION
   saveProduct() {
+    // SI EL FORMULARIO ESTA INVALIDO (CAMPOS VACIOS), NO HACE NADA
     if (this.productForm.invalid) return;
 
+    // DECIDE SI LLAMAR A 'UPDATE' O 'CREATE' SEGUN LA BANDERA
     const request = this.isEditing
       ? this.adminService.updateProduct(this.currentId!, this.productForm.value)
       : this.adminService.createProduct(this.productForm.value);
 
+    // EJECUTA LA PETICION AL BACKEND
     request.subscribe({
       next: () => {
+        // MENSAJE DE EXITO TIPO TOAST
         Swal.fire({ icon: 'success', title: 'Guardado correctamente', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, background: 'var(--bg-card)', color: 'var(--text-main)' });
         this.closeModal();
-        this.loadData();
+        this.loadData(); // REFRESCA LA TABLA AL INSTANTE :D
       },
       error: (err) => Swal.fire('Error', err.error?.message || 'Error al guardar', 'error')
     });
   }
 
+  // LOGICA PARA ELIMINAR CON CONFIRMACION PREVIA XD
   deleteProduct(product: any) {
     Swal.fire({
       title: '¿Eliminar producto?',
@@ -356,10 +405,11 @@ export class AdminProductsComponent implements OnInit {
       color: 'var(--text-main)'
     }).then((result) => {
       if (result.isConfirmed) {
+        // SI DIJO QUE SI, LLAMA AL SERVICIO DE BORRADO
         this.adminService.deleteProduct(product.productoId || product.id).subscribe({
           next: () => {
             Swal.fire({ icon: 'success', title: 'Eliminado', text: 'El producto ha sido borrado.', confirmButtonColor: '#0ea5e9', background: 'var(--bg-card)', color: 'var(--text-main)' });
-            this.loadData();
+            this.loadData(); // REFRESCA TABLA
           },
           error: () => Swal.fire('Error', 'No se puede eliminar (posiblemente tiene pedidos asociados)', 'error')
         });

@@ -48,10 +48,14 @@ import Swal from 'sweetalert2';
   `
 })
 export class VerifyComponent {
+  // INYECCION DE DEPENDENCIAS
+  // NOTA: AQUI SE USA HTTP DIRECTO, PERO PODRIA ESTAR EN EL AUTHSERVICE TAMBIEN :V
   private fb = inject(FormBuilder);
   private http = inject(HttpClient);
   private router = inject(Router);
 
+  // CONFIGURACION DEL FORMULARIO
+  // EL CODIGO DEBE SER EXACTAMENTE DE 6 DIGITOS
   verifyForm: FormGroup = this.fb.group({
     email: ['', [Validators.required, Validators.email]],
     codigo: ['', [Validators.required, Validators.minLength(6), Validators.maxLength(6)]]
@@ -60,12 +64,16 @@ export class VerifyComponent {
   isLoading = false;
 
   onSubmit() {
+    // SI EL FORMULARIO ESTA INCOMPLETO, SE DETIENE AQUI
     if (this.verifyForm.invalid) return;
     this.isLoading = true;
 
+    // ENVIA EL EMAIL Y EL CODIGO AL ENDPOINT DE VERIFICACION DEL BACKEND
     this.http.post('http://localhost:8080/api/auth/verify', this.verifyForm.value).subscribe({
       next: (res: any) => {
         this.isLoading = false;
+
+        // EXITO: MUESTRA ALERTA Y REDIRIGE AL LOGIN PARA QUE ENTRE
         Swal.fire({
           icon: 'success',
           title: '¡Cuenta Activada!',
@@ -76,6 +84,7 @@ export class VerifyComponent {
         });
       },
       error: (err) => {
+        // ERROR: CODIGO INCORRECTO O EXPIRADO
         this.isLoading = false;
         Swal.fire({
           icon: 'error',

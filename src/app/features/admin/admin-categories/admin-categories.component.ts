@@ -157,40 +157,69 @@ import Swal from 'sweetalert2';
     </div>
   `,
   styles: [`
-    .animate-fade-in-up { animation: fadeInUp 0.5s ease-out forwards; }
-    .animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-    @keyframes fadeInUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(50px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-fade-in-up {
+      animation: fadeInUp 0.5s ease-out forwards;
+    }
+    .animate-slide-up {
+      animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
   `]
 })
 export class AdminCategoriesComponent implements OnInit {
+  // INYECCION DE DEPENDENCIAS EN MODO MODERNO (SIN CONSTRUCTOR) :V
   private adminService = inject(AdminService);
   private fb = inject(FormBuilder);
 
+  // VARIABLES DE ESTADO LOCAL
   categories: any[] = [];
   isModalOpen = false;
   isEditing = false;
   currentId: number | null = null;
 
+  // CONFIGURACION DEL FORMULARIO CON SUS VALIDACIONES XD
   categoryForm: FormGroup = this.fb.group({
-    nombre: ['', Validators.required],
+    nombre: ['', Validators.required], // CAMPO OBLIGATORIO
     descripcion: [''],
     imagenUrl: ['']
   });
 
   ngOnInit() {
+    // AL CARGAR EL COMPONENTE, PEDIMOS DATOS AL BACKEND :D
     this.loadData();
   }
 
   loadData() {
+    // LLAMADA AL SERVICIO PARA LLENAR LA TABLA DE CATEGORIAS
     this.adminService.getCategories().subscribe(data => this.categories = data);
   }
 
+  // LOGICA PARA ABRIR EL MODAL (SIRVE TANTO PARA CREAR COMO EDITAR) :V
   openModal(category: any = null) {
     this.isModalOpen = true;
-    document.body.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden'; // EVITA QUE HAGAN SCROLL EN EL FONDO
 
     if (category) {
+      // MODO EDICION: CARGAMOS LOS DATOS DE LA FILA EN EL FORMULARIO XD
       this.isEditing = true;
       this.currentId = category.categoriaId || category.id;
       this.categoryForm.patchValue({
@@ -199,6 +228,7 @@ export class AdminCategoriesComponent implements OnInit {
         imagenUrl: category.imagenUrl
       });
     } else {
+      // MODO CREACION: LIMPIAMOS TODO PARA EMPEZAR DE CERO
       this.isEditing = false;
       this.currentId = null;
       this.categoryForm.reset();
@@ -207,19 +237,33 @@ export class AdminCategoriesComponent implements OnInit {
 
   closeModal() {
     this.isModalOpen = false;
-    document.body.style.overflow = 'auto';
+    document.body.style.overflow = 'auto'; // DEVUELVE EL SCROLL A LA NORMALIDAD
   }
 
+  // BOTON GUARDAR: CEREBRO DE LA OPERACION :D
   saveCategory() {
+    // SI EL FORM ESTA INVALIDO, NO HACEMOS NADA
     if (this.categoryForm.invalid) return;
 
+    // DECIDIMOS SI LLAMAR A UPDATE O CREATE SEGUN LA BANDERA
     const request = this.isEditing
       ? this.adminService.updateCategory(this.currentId!, this.categoryForm.value)
       : this.adminService.createCategory(this.categoryForm.value);
 
+    // EJECUTAMOS LA PETICION
     request.subscribe({
       next: () => {
-        Swal.fire({ icon: 'success', title: 'Guardado', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, background: 'var(--bg-card)', color: 'var(--text-main)' });
+        // SI SALE BIEN: ALERTA POSITIVA Y REFRESCAMOS DATOS :V
+        Swal.fire({
+          icon: 'success',
+          title: 'Guardado',
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 1500,
+          background: 'var(--bg-card)',
+          color: 'var(--text-main)'
+        });
         this.closeModal();
         this.loadData();
       },
@@ -227,6 +271,7 @@ export class AdminCategoriesComponent implements OnInit {
     });
   }
 
+  // LOGICA DE BORRADO CON CONFIRMACION PARA EVITAR ACCIDENTES XD
   deleteCategory(category: any) {
     Swal.fire({
       title: '¿Borrar categoría?',
@@ -241,10 +286,11 @@ export class AdminCategoriesComponent implements OnInit {
       color: 'var(--text-main)'
     }).then((result) => {
       if (result.isConfirmed) {
+        // SI EL USUARIO DICE "SI", PROCEDEMOS A BORRAR EN BD
         this.adminService.deleteCategory(category.categoriaId || category.id).subscribe({
           next: () => {
             Swal.fire({ icon: 'success', title: 'Eliminado', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500, background: 'var(--bg-card)', color: 'var(--text-main)' });
-            this.loadData();
+            this.loadData(); // REFRESCAMOS TABLA
           },
           error: () => Swal.fire('Error', 'No se puede borrar (posiblemente en uso)', 'error')
         });
@@ -252,6 +298,7 @@ export class AdminCategoriesComponent implements OnInit {
     });
   }
 
+  // SI LA URL DE LA IMAGEN ESTA ROTA, PONEMOS UN ICONO POR DEFECTO :P
   handleImgError(event: any) {
     event.target.style.display = 'none';
     event.target.parentElement.innerHTML = '<i class="ri-image-line"></i>';
