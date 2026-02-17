@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { Returns } from './returns';
+import { ReturnsComponent } from './returns.component';
 
-describe('Returns', () => {
-  let component: Returns;
-  let fixture: ComponentFixture<Returns>;
+describe('ReturnsComponent', () => {
+  let component: ReturnsComponent;
+  let fixture: ComponentFixture<ReturnsComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Returns]
+      imports: [ReturnsComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(Returns);
+    fixture = TestBed.createComponent(ReturnsComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

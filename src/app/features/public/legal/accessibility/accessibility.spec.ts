@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { Accessibility } from './accessibility';
+import { AccessibilityComponent } from './accessibility.component';
 
-describe('Accessibility', () => {
-  let component: Accessibility;
-  let fixture: ComponentFixture<Accessibility>;
+describe('AccessibilityComponent', () => {
+  let component: AccessibilityComponent;
+  let fixture: ComponentFixture<AccessibilityComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Accessibility]
+      imports: [AccessibilityComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(Accessibility);
+    fixture = TestBed.createComponent(AccessibilityComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
