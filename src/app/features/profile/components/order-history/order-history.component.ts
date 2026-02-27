@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ProfileService } from '../../services/profile.service';
-import { OrderService } from '../../../order/services/order.service';
+import { ProfileService } from '../../../../core/services/profile.service';
+import { OrderService } from '../../../../core/services/order.service';
 import { RouterLink } from '@angular/router';
 import Swal from 'sweetalert2';
 
@@ -137,7 +137,7 @@ export class OrderHistoryComponent implements OnInit {
   loadOrders() {
     this.loading = true;
     this.profileService.getOrders().subscribe({
-      next: (data: any) => {
+      next: (data) => {
         this.orders = data;
         this.loading = false;
       },
@@ -171,7 +171,7 @@ export class OrderHistoryComponent implements OnInit {
 
         setTimeout(() => window.URL.revokeObjectURL(url), 10000);
       },
-      error: (err: any) => {
+      error: (err) => {
         console.error(err);
         Swal.fire('Error', 'No se pudo descargar la boleta.', 'error');
       }
@@ -184,7 +184,7 @@ export class OrderHistoryComponent implements OnInit {
     this.orderDetails = [];
     this.loadingDetails = true;
     this.profileService.getOrderDetail(order.pedidoId).subscribe({
-      next: (res: any) => {
+      next: (res) => {
         this.orderDetails = res;
         this.loadingDetails = false;
       },
@@ -218,7 +218,7 @@ export class OrderHistoryComponent implements OnInit {
           return false;
         }
         return this.orderService.refundOrder(order.pedidoId, code).toPromise()
-          .catch((error: any) => Swal.showValidationMessage(`Error: ${error.error?.message || 'Código incorrecto'}`));
+          .catch(error => Swal.showValidationMessage(`Error: ${error.error?.message || 'Código incorrecto'}`));
       }
     }).then((result) => {
       if (result.isConfirmed) {

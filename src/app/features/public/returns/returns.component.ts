@@ -1,0 +1,110 @@
+import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { RouterLink } from '@angular/router';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
+
+@Component({
+  selector: 'app-returns',
+  standalone: true,
+  imports: [CommonModule, PageHeaderComponent, RouterLink],
+  template: `
+    <app-page-layout 
+        title="Cambios y Devoluciones" 
+        subtitle="Garantía Total"
+        bgImage="https://images.unsplash.com/photo-1556742046-80695091448b?q=80">
+
+        <div class="max-w-4xl mx-auto space-y-16">
+            
+            <div class="bg-gradient-to-br from-primary/10 to-transparent border border-primary/20 rounded-3xl p-10 flex flex-col md:flex-row items-center gap-8">
+                <div class="w-20 h-20 bg-primary text-white rounded-full flex items-center justify-center text-4xl shadow-lg shadow-primary/30 shrink-0">
+                    <i class="ri-shield-check-line"></i>
+                </div>
+                <div>
+                    <h2 class="text-2xl font-black text-main mb-2">Tranquilidad Garantizada</h2>
+                    <p class="text-muted text-lg leading-relaxed">
+                        Comprar tecnología puede ser complicado, devolverla no debería serlo. Tienes <span class="font-bold text-main">7 días calendario</span> para probar tu producto. Si no es lo que esperabas, lo cambiamos.
+                    </p>
+                </div>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8">
+                
+                <div class="bg-card border border-theme rounded-3xl p-8">
+                    <h3 class="text-xl font-bold text-green-600 mb-6 flex items-center gap-2">
+                        <i class="ri-checkbox-circle-fill"></i> Aceptamos devolución si:
+                    </h3>
+                    <ul class="space-y-4">
+                        <li class="flex gap-3 text-muted">
+                            <div class="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-sm shrink-0"><i class="ri-check-line"></i></div>
+                            <span>El producto está sellado y nuevo.</span>
+                        </li>
+                        <li class="flex gap-3 text-muted">
+                            <div class="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-sm shrink-0"><i class="ri-check-line"></i></div>
+                            <span>Tiene falla de fábrica comprobada.</span>
+                        </li>
+                        <li class="flex gap-3 text-muted">
+                            <div class="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-sm shrink-0"><i class="ri-check-line"></i></div>
+                            <span>Te enviamos el modelo incorrecto.</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="bg-card border border-theme rounded-3xl p-8">
+                    <h3 class="text-xl font-bold text-red-500 mb-6 flex items-center gap-2">
+                        <i class="ri-close-circle-fill"></i> No procede si:
+                    </h3>
+                    <ul class="space-y-4">
+                        <li class="flex gap-3 text-muted">
+                            <div class="w-6 h-6 rounded-full bg-red-100 text-red-500 flex items-center justify-center text-sm shrink-0"><i class="ri-close-line"></i></div>
+                            <span>El empaque está roto o dañado (si no era falla).</span>
+                        </li>
+                        <li class="flex gap-3 text-muted">
+                            <div class="w-6 h-6 rounded-full bg-red-100 text-red-500 flex items-center justify-center text-sm shrink-0"><i class="ri-close-line"></i></div>
+                            <span>Faltan accesorios o manuales.</span>
+                        </li>
+                        <li class="flex gap-3 text-muted">
+                            <div class="w-6 h-6 rounded-full bg-red-100 text-red-500 flex items-center justify-center text-sm shrink-0"><i class="ri-close-line"></i></div>
+                            <span>Software/Juegos abiertos (Copyright).</span>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+
+            <div class="text-center">
+                <h3 class="text-2xl font-black text-main mb-8">Proceso en 3 Pasos</h3>
+                <div class="flex flex-col md:flex-row justify-between items-center gap-8 relative">
+                     <div class="hidden md:block absolute top-1/2 left-10 right-10 h-0.5 bg-theme -z-10"></div>
+
+                     <div class="bg-card border border-theme p-6 rounded-2xl w-full md:w-1/3">
+                        <div class="w-10 h-10 bg-main text-white rounded-full flex items-center justify-center font-bold mx-auto mb-4">1</div>
+                        <h4 class="font-bold text-main">Solicitar</h4>
+                        <p class="text-xs text-muted mt-2">Desde tu perfil o contactando a soporte.</p>
+                     </div>
+
+                     <div class="bg-card border border-theme p-6 rounded-2xl w-full md:w-1/3">
+                        <div class="w-10 h-10 bg-main text-white rounded-full flex items-center justify-center font-bold mx-auto mb-4">2</div>
+                        <h4 class="font-bold text-main">Enviar</h4>
+                        <p class="text-xs text-muted mt-2">Empaca todo y entrégalo al courier.</p>
+                     </div>
+
+                     <div class="bg-card border border-theme p-6 rounded-2xl w-full md:w-1/3">
+                        <div class="w-10 h-10 bg-main text-white rounded-full flex items-center justify-center font-bold mx-auto mb-4">3</div>
+                        <h4 class="font-bold text-main">Reembolso</h4>
+                        <p class="text-xs text-muted mt-2">Recibe tu dinero en 5-10 días.</p>
+                     </div>
+                </div>
+                
+                <div class="mt-12">
+                    <a routerLink="/profile" class="inline-flex items-center gap-2 px-8 py-3 bg-card border border-theme hover:border-primary text-main font-bold rounded-xl transition-all hover:shadow-lg">
+                        Ir a Mis Pedidos <i class="ri-arrow-right-line"></i>
+                    </a>
+                </div>
+            </div>
+
+        </div>
+
+    </app-page-layout>
+  `
+})
+export class ReturnsComponent { }

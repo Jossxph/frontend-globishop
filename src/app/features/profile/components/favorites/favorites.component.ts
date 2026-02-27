@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { ProfileService } from '../../services/profile.service';
+import { ProfileService } from '../../../../core/services/profile.service';
 import Swal from 'sweetalert2';
 
 @Component({
@@ -52,7 +52,7 @@ export class FavoritesComponent implements OnInit {
   loadFavorites() {
     this.loading = true;
     this.profileService.getFavorites().subscribe({
-      next: (data: any) => {
+      next: (data) => {
         this.favorites = data;
         this.loading = false;
       },

@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, OnInit, Output, inject, OnChanges, Simp
 import { CommonModule } from '@angular/common';
 import { FormBuilder, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ProfileService } from '../../services/profile.service';
+import { ProfileService } from '../../../../core/services/profile.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import Swal from 'sweetalert2';
 
@@ -169,7 +169,7 @@ export class ProfileSettingsComponent implements OnInit, OnChanges {
         Swal.fire('Éxito', 'Contraseña actualizada', 'success');
         this.passForm.reset();
       },
-      error: (err: any) => Swal.fire('Error', err.error?.message || 'Error al cambiar contraseña', 'error')
+      error: (err) => Swal.fire('Error', err.error?.message || 'Error al cambiar contraseña', 'error')
     });
   }
 
@@ -197,7 +197,7 @@ export class ProfileSettingsComponent implements OnInit, OnChanges {
           this.router.navigate(['/auth/login']);
         });
       },
-      error: (err: any) => Swal.fire('Error', err.error?.message || 'Código incorrecto', 'error')
+      error: (err) => Swal.fire('Error', err.error?.message || 'Código incorrecto', 'error')
     });
   }
 
@@ -217,7 +217,7 @@ export class ProfileSettingsComponent implements OnInit, OnChanges {
             Swal.fire('Eliminada', 'Tu cuenta ha sido cerrada.', 'success');
             this.router.navigate(['/']);
           },
-          error: (err: any) => Swal.fire('Error', err.error?.message, 'error')
+          error: (err) => Swal.fire('Error', err.error?.message, 'error')
         });
       }
     });

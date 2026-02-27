@@ -1,7 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap, BehaviorSubject } from 'rxjs';
-import { API_ROUTES } from '../api/api-routes';
+
+const API_URL = 'http://localhost:8080/api/auth';
 
 @Injectable({
   providedIn: 'root'
@@ -10,6 +11,7 @@ export class AuthService {
   private http = inject(HttpClient);
 
   // ALMACENA EL ESTADO DEL USUARIO ACTUAL PARA QUE TODA LA APP LO VEA
+  // SI RECARGAS LA PAGINA, LEE DE LOCALSTORAGE PARA NO PERDER LA SESION
   private currentUserSubject = new BehaviorSubject<any>(
     JSON.parse(localStorage.getItem('user') || 'null')
   );
@@ -21,7 +23,7 @@ export class AuthService {
 
   // REALIZA LOGIN Y GUARDA TOKEN/USUARIO SI ES EXITOSO
   login(credentials: any): Observable<any> {
-    return this.http.post<any>(API_ROUTES.auth.login, credentials).pipe(
+    return this.http.post(`${API_URL}/login`, credentials).pipe(
       tap((response: any) => {
         // GUARDA TOKEN JWT Y DATOS DEL USUARIO EN EL NAVEGADOR
         localStorage.setItem('token', response.token);
@@ -35,7 +37,7 @@ export class AuthService {
 
   // REGISTRO DE NUEVOS CLIENTES
   register(userData: any): Observable<any> {
-    return this.http.post<any>(API_ROUTES.auth.register, userData);
+    return this.http.post(`${API_URL}/register`, userData);
   }
 
   // CIERRA SESION ELIMINANDO DATOS DEL NAVEGADOR
@@ -54,8 +56,7 @@ export class AuthService {
 
   // SOLICITUD DE "OLVIDE MI CONTRASEÑA"
   forgotPassword(email: string): Observable<any> {
-    // Nota: El API_ROUTES tiene recoverPassword, usaremos ese si es el mismo
-    return this.http.post<any>(API_ROUTES.auth.recoverPassword, { email });
+    return this.http.post(`${API_URL}/forgot-password`, { email });
   }
 
   // VERIFICA SI HAY UN TOKEN GUARDADO (SI ESTA LOGUEADO)
@@ -84,13 +85,18 @@ export class AuthService {
 
   // VERIFICA SI EL ROL DEL USUARIO ES 'ADMIN'
   isAdmin(): boolean {
+    const token = localStorage.getItem('token');
     const userStr = localStorage.getItem('user');
 
-    if (!userStr) return false;
+    if (!token || !userStr) {
+      return false;
+    }
 
     try {
       const user = JSON.parse(userStr);
+      // COMPRUEBA EL CAMPO 'ROL' QUE VIENE DEL BACKEND
       return user.rol === 'ADMIN';
+
     } catch (e) {
       console.error('Error al leer usuario', e);
       return false;
@@ -100,17 +106,17 @@ export class AuthService {
   // --- ENDPOINTS DE RECUPERACION DE CONTRASEÑA ---
 
   // ENVIA CODIGO DE RECUPERACION AL CORREO
-  recoverPassword(email: string): Observable<any> {
-    return this.http.post<any>(API_ROUTES.auth.recoverPassword, { email });
+  recoverPassword(email: string) {
+    return this.http.post(`${API_URL}/recover-password`, { email });
   }
 
   // VALIDA EL CODIGO QUE INGRESO EL USUARIO
-  verifyRecoveryCode(email: string, code: string): Observable<any> {
-    return this.http.post<any>(API_ROUTES.auth.verifyCode, { email, code });
+  verifyRecoveryCode(email: string, code: string) {
+    return this.http.post(`${API_URL}/verify-code`, { email, code });
   }
 
   // CAMBIA LA CONTRASEÑA FINALMENTE CON EL CODIGO VERIFICADO
-  resetPassword(email: string, code: string, newPassword: string): Observable<any> {
-    return this.http.post<any>(API_ROUTES.auth.resetPassword, { email, code, newPassword });
+  resetPassword(email: string, code: string, newPassword: string) {
+    return this.http.post(`${API_URL}/reset-password`, { email, code, newPassword });
   }
 }

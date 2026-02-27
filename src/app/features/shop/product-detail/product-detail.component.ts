@@ -1,0 +1,415 @@
+import { Component, inject, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ActivatedRoute, RouterLink, Router } from '@angular/router';
+import { ProductService } from '../../../core/services/product.service';
+import { CartService } from '../../../core/services/cart.service';
+import { AuthService } from '../../../core/services/auth.service';
+import { ProfileService } from '../../../core/services/profile.service';
+import { NavbarComponent } from '../../../shared/components/navbar/navbar.component';
+import { FooterComponent } from '../../../shared/components/footer/footer.component';
+import Swal from 'sweetalert2';
+import { forkJoin } from 'rxjs';
+
+@Component({
+    selector: 'app-product-detail',
+    standalone: true,
+    imports: [CommonModule, NavbarComponent, FooterComponent, RouterLink],
+    template: `
+    <app-navbar></app-navbar>
+
+    <div class="min-h-screen bg-main pt-32 pb-12 animate-fade-in">
+        <div class="container mx-auto px-4 max-w-6xl">
+            
+            <div *ngIf="isLoading" class="animate-pulse">
+                <div class="h-6 w-48 bg-card border border-theme rounded mb-8"></div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                    <div class="h-[500px] bg-card border border-theme rounded-3xl"></div>
+                    <div class="space-y-6">
+                        <div class="h-4 w-24 bg-card border border-theme rounded"></div>
+                        <div class="h-12 w-3/4 bg-card border border-theme rounded"></div>
+                        <div class="h-24 w-full bg-card border border-theme rounded"></div>
+                        <div class="h-16 w-full bg-card border border-theme rounded"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div *ngIf="!isLoading && !product" class="text-center py-20 bg-card border border-theme rounded-3xl border-dashed">
+                <i class="ri-ghost-line text-6xl text-muted/30"></i>
+                <h2 class="text-2xl font-bold text-main mt-4">Producto no encontrado</h2>
+                <p class="text-muted mb-6">El producto que buscas no existe o fue removido.</p>
+                <a routerLink="/products" class="px-8 py-3 bg-primary text-white rounded-xl font-bold hover:bg-secondary transition-colors">
+                    Volver al Catálogo
+                </a>
+            </div>
+
+            <div *ngIf="!isLoading && product" class="animate-fade-in">
+                
+                <nav class="flex text-sm text-muted mb-8 overflow-x-auto whitespace-nowrap">
+                    <a routerLink="/" class="hover:text-primary transition-colors">Inicio</a> 
+                    <span class="mx-2">/</span>
+                    <a routerLink="/products" class="hover:text-primary transition-colors">Catálogo</a>
+                    <span class="mx-2">/</span>
+                    <span class="font-medium text-main truncate">{{ product.nombre }}</span>
+                </nav>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-20 items-start">
+                    
+                    <div class="sticky top-32">
+                        <div class="bg-card rounded-3xl p-8 border border-theme flex items-center justify-center relative group shadow-sm overflow-hidden mb-4">
+                            <span *ngIf="isNew(product.fechaCreacion)" class="absolute top-4 left-4 bg-primary text-white text-[10px] font-bold px-3 py-1 rounded-full shadow-lg z-10 animate-bounce-slow">
+                                NUEVO
+                            </span>
+                            
+                            <button (click)="toggleFavorite()" class="absolute top-4 right-4 w-12 h-12 rounded-full bg-white/80 backdrop-blur border border-theme shadow-lg flex items-center justify-center transition-all hover:scale-110 cursor-pointer z-20 hover:text-red-500 hover:border-red-200 group/fav">
+                                <i class="ri-heart-3-line text-2xl text-muted group-hover/fav:text-red-500 transition-colors" [ngClass]="{'ri-heart-3-fill text-red-500': isFavorite}"></i>
+                            </button>
+
+                            <img [src]="product.imagenUrl || 'assets/images/no-image.png'" 
+                                 (error)="handleImageError($event)"
+                                 class="w-full max-h-[500px] object-contain transition-transform duration-500 group-hover:scale-105 drop-shadow-xl mix-blend-multiply dark:mix-blend-normal">
+                        </div>
+                        
+                        <div class="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+                            <div *ngFor="let i of [1,2,3]" class="w-20 h-20 rounded-xl border-2 border-transparent hover:border-primary cursor-pointer bg-white p-2 flex items-center justify-center transition-all">
+                                <img [src]="product.imagenUrl" class="max-h-full object-contain opacity-80 hover:opacity-100">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col justify-center space-y-8">
+                        
+                        <div>
+                            <div class="flex items-center gap-3 mb-4">
+                                <span class="text-xs font-bold text-primary uppercase tracking-wider bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
+                                    {{ product.categoria?.nombre || product.categoria || 'General' }}
+                                </span>
+                                
+                                <div class="flex items-center gap-1 text-sm bg-yellow-500/10 px-2 py-1 rounded-lg border border-yellow-500/20 text-yellow-600 dark:text-yellow-400">
+                                    <i class="ri-star-fill"></i>
+                                    <span class="font-bold">4.8</span>
+                                    <span class="text-muted text-xs ml-1">({{ reviews.length }} reseñas)</span>
+                                </div>
+                            </div>
+                            
+                            <h1 class="text-3xl lg:text-5xl font-black text-main leading-tight mb-4">{{ product.nombre }}</h1>
+                            
+                            <p class="text-muted text-lg leading-relaxed border-l-4 border-primary/30 pl-6 py-1">
+                                {{ product.descripcion }}
+                            </p>
+                        </div>
+
+                        <div class="bg-card border border-theme p-8 rounded-3xl shadow-lg relative overflow-hidden">
+                            <div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full -mr-10 -mt-10"></div>
+                            
+                            <div class="flex justify-between items-end mb-8 relative z-10">
+                                <div>
+                                    <p class="text-sm text-muted font-bold uppercase mb-1">Precio Online</p>
+                                    <div class="flex items-baseline gap-2">
+                                        <span class="text-4xl lg:text-5xl font-black text-main tracking-tight">S/ {{ product.precio | number:'1.2-2' }}</span>
+                                        <span *ngIf="product.precioAnterior" class="text-lg text-muted line-through decoration-red-500 decoration-2">S/ {{ product.precioAnterior }}</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="text-right">
+                                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide border"
+                                         [ngClass]="product.stock > 0 ? 'bg-green-100 text-green-700 border-green-200' : 'bg-red-100 text-red-700 border-red-200'">
+                                        <div class="w-2 h-2 rounded-full" [ngClass]="product.stock > 0 ? 'bg-green-500 animate-pulse' : 'bg-red-500'"></div>
+                                        {{ product.stock > 0 ? 'En Stock' : 'Agotado' }}
+                                    </div>
+                                    <p class="text-xs text-muted mt-2 font-mono">SKU: {{ product.sku || 'GLB-' + product.id }}</p>
+                                </div>
+                            </div>
+
+                            <div *ngIf="authService.isLoggedIn(); else guestBlock" class="relative z-10">
+                                <div *ngIf="product.stock > 0" class="flex flex-col sm:flex-row gap-4">
+                                    <div class="flex items-center bg-input rounded-xl border border-theme h-14 w-full sm:w-auto px-2">
+                                        <button (click)="changeQty(-1)" class="w-10 h-full text-muted hover:text-primary text-xl flex items-center justify-center transition-colors" [disabled]="quantity <= 1">
+                                            <i class="ri-subtract-line"></i>
+                                        </button>
+                                        <span class="w-12 text-center font-bold text-main text-lg select-none">{{ quantity }}</span>
+                                        <button (click)="changeQty(1)" class="w-10 h-full text-muted hover:text-primary text-xl flex items-center justify-center transition-colors" [disabled]="quantity >= product.stock">
+                                            <i class="ri-add-line"></i>
+                                        </button>
+                                    </div>
+                                    
+                                    <button (click)="addToCart()" class="flex-1 bg-primary hover:bg-secondary text-white font-bold rounded-xl h-14 text-lg shadow-lg shadow-primary/30 transition-all active:scale-95 flex items-center justify-center gap-3 cursor-pointer hover:-translate-y-1">
+                                        <i class="ri-shopping-cart-2-fill text-xl"></i>
+                                        <span>Agregar al Carrito</span>
+                                    </button>
+                                </div>
+                                
+                                <div *ngIf="product.stock === 0" class="w-full bg-slate-100 dark:bg-slate-800 text-muted font-bold py-4 rounded-xl text-center border border-theme cursor-not-allowed opacity-75">
+                                    <i class="ri-forbid-2-line mr-2"></i> Temporalmente sin stock
+                                </div>
+                            </div>
+
+                            <ng-template #guestBlock>
+                                <div class="bg-input/50 rounded-xl p-6 text-center border border-dashed border-theme relative z-10">
+                                    <i class="ri-lock-2-line text-2xl text-primary mb-2 block"></i>
+                                    <p class="text-main font-bold mb-4">Inicia sesión para comprar este producto</p>
+                                    <div class="flex justify-center gap-4">
+                                        <a routerLink="/auth/login" class="px-6 py-2 bg-white border border-theme rounded-lg font-bold text-sm hover:border-primary hover:text-primary transition-colors">Ingresar</a>
+                                        <a routerLink="/auth/register" class="px-6 py-2 bg-primary text-white rounded-lg font-bold text-sm hover:bg-secondary transition-colors shadow-lg shadow-primary/20">Registrarse</a>
+                                    </div>
+                                </div>
+                            </ng-template>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="flex items-center gap-3 p-4 rounded-2xl bg-card border border-theme">
+                                <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-xl shrink-0">
+                                    <i class="ri-truck-line"></i>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-main text-sm">Envío Nacional</p>
+                                    <p class="text-xs text-muted">2-5 días hábiles</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3 p-4 rounded-2xl bg-card border border-theme">
+                                <div class="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-xl shrink-0">
+                                    <i class="ri-shield-check-line"></i>
+                                </div>
+                                <div>
+                                    <p class="font-bold text-main text-sm">Garantía Total</p>
+                                    <p class="text-xs text-muted">12 meses directo</p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <div class="border-t border-theme pt-12">
+                    <div class="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
+                        <div class="flex items-center gap-4">
+                            <h2 class="text-3xl font-black text-main">Opiniones</h2>
+                            <span class="px-3 py-1 bg-input rounded-full text-sm font-bold text-muted border border-theme">{{ reviews.length }}</span>
+                        </div>
+                        
+                        <button *ngIf="canReview" (click)="writeReview()" class="group bg-card hover:bg-main hover:text-white border border-theme text-main px-6 py-3 rounded-xl font-bold transition-all shadow-sm hover:shadow-lg flex items-center gap-2">
+                            <i class="ri-pencil-line text-lg group-hover:scale-110 transition-transform"></i>
+                            Escribir mi opinión
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div *ngIf="reviews.length === 0" class="col-span-2 py-16 text-center border-2 border-dashed border-theme rounded-3xl bg-input/20">
+                            <div class="w-16 h-16 bg-card rounded-full flex items-center justify-center mx-auto mb-4 border border-theme shadow-sm">
+                                <i class="ri-chat-smile-2-line text-3xl text-primary"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-main">Aún no hay opiniones</h3>
+                            <p class="text-muted text-sm mt-2">¡Sé el primero en compartir tu experiencia!</p>
+                        </div>
+
+                        <div *ngFor="let review of reviews" class="bg-card p-8 rounded-3xl border border-theme shadow-sm hover:shadow-md transition-all">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-purple-600 p-[2px]">
+                                        <div class="w-full h-full bg-white rounded-[10px] overflow-hidden flex items-center justify-center">
+                                            <img *ngIf="review.usuario?.fotoUrl" [src]="review.usuario.fotoUrl" class="w-full h-full object-cover">
+                                            <span *ngIf="!review.usuario?.fotoUrl" class="font-black text-primary text-lg">
+                                                {{ review.usuario?.nombreCompleto?.charAt(0) || 'U' }}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <p class="font-bold text-main">{{ review.usuario?.nombreCompleto || 'Usuario Anónimo' }}</p>
+                                        <p class="text-xs text-muted font-mono uppercase">{{ review.fecha | date:'mediumDate' }}</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex gap-1 text-yellow-400 text-sm">
+                                    <i *ngFor="let star of [1,2,3,4,5]" [class]="star <= review.calificacion ? 'ri-star-fill' : 'ri-star-line opacity-30'"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-input/50 p-4 rounded-xl rounded-tl-none relative mt-2">
+                                <i class="ri-double-quotes-l absolute -top-3 -left-1 text-2xl text-primary opacity-20"></i>
+                                <p class="text-main/80 text-sm leading-relaxed italic">{{ review.comentario }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    
+    <app-footer></app-footer>
+  `,
+    styles: [`
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+    .animate-bounce-slow { animation: bounce 3s infinite; }
+    .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  `]
+})
+export class ProductDetailComponent implements OnInit {
+    public authService = inject(AuthService);
+    private route = inject(ActivatedRoute);
+    private router = inject(Router);
+    private productService = inject(ProductService);
+    private cartService = inject(CartService);
+    private profileService = inject(ProfileService);
+
+    isLoading = true;
+    product: any = null;
+    reviews: any[] = [];
+    quantity: number = 1;
+    canReview = false;
+    isFavorite = false;
+
+    ngOnInit() {
+        this.route.paramMap.subscribe(params => {
+            const id = Number(params.get('id'));
+            if (id) {
+                this.loadFullData(id);
+            } else {
+                this.isLoading = false;
+            }
+        });
+    }
+
+    loadFullData(id: number) {
+        this.isLoading = true;
+
+        forkJoin({
+            product: this.productService.getById(id),
+            reviews: this.productService.getReviews(id)
+        }).subscribe({
+            next: (res: any) => {
+                this.product = res.product;
+                this.reviews = res.reviews;
+
+                if (this.authService.isLoggedIn()) {
+                    this.checkEligibility(id);
+                    this.checkIfFavorite(id);
+                }
+
+                this.isLoading = false;
+            },
+            error: (err) => {
+                console.error('Error cargando producto', err);
+                this.product = null;
+                this.isLoading = false;
+            }
+        });
+    }
+
+    checkEligibility(id: number) {
+        this.productService.checkEligibility(id).subscribe({
+            next: (allowed) => this.canReview = allowed,
+            error: () => this.canReview = false
+        });
+    }
+
+    checkIfFavorite(id: number) {
+    }
+
+    changeQty(delta: number) {
+        const newVal = this.quantity + delta;
+        if (newVal >= 1 && newVal <= this.product.stock) this.quantity = newVal;
+    }
+
+    addToCart() {
+        this.cartService.addToCart(this.product, this.quantity);
+        this.cartService.openCart();
+        const Toast = Swal.mixin({ toast: true, position: 'bottom-end', showConfirmButton: false, timer: 2000, background: '#fff', color: '#000' });
+        Toast.fire({ icon: 'success', title: 'Agregado al carrito' });
+    }
+
+    toggleFavorite() {
+        if (!this.authService.isLoggedIn()) {
+            Swal.fire({
+                icon: 'info',
+                title: 'Acceso requerido',
+                text: 'Inicia sesión para guardar favoritos',
+                confirmButtonColor: '#0ea5e9',
+                showCancelButton: true,
+                confirmButtonText: 'Ir al Login',
+                cancelButtonText: 'Cancelar'
+            }).then((r) => { if (r.isConfirmed) this.router.navigate(['/auth/login']) });
+            return;
+        }
+
+        this.isFavorite = !this.isFavorite;
+
+        const id = this.product.productoId || this.product.id;
+        this.profileService.toggleFavorite(id).subscribe({
+            next: (res: any) => {
+                const msg = res.message || (typeof res === 'string' ? res : 'Lista actualizada');
+                const isRemoved = msg.toLowerCase().includes('eliminado');
+
+                this.isFavorite = !isRemoved;
+
+                Swal.fire({
+                    icon: 'success',
+                    title: isRemoved ? 'Eliminado de Favoritos' : 'Guardado en Favoritos',
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+            },
+            error: () => {
+                this.isFavorite = !this.isFavorite;
+                Swal.fire('Error', 'No se pudo actualizar favoritos', 'error');
+            }
+        });
+    }
+
+    writeReview() {
+        Swal.fire({
+            title: 'Tu opinión cuenta 🌟',
+            html: `
+        <div class="text-left">
+          <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Calificación</label>
+          <div class="rating-select mb-4 flex justify-center text-2xl text-yellow-400 gap-2 cursor-pointer">
+               </div>
+          <select id="swal-rating" class="w-full p-3 border rounded-xl mb-4 bg-gray-50 outline-none focus:border-blue-500 font-bold text-gray-700">
+            <option value="5">⭐⭐⭐⭐⭐ Excelente</option>
+            <option value="4">⭐⭐⭐⭐ Muy bueno</option>
+            <option value="3">⭐⭐⭐ Regular</option>
+            <option value="2">⭐⭐ Malo</option>
+            <option value="1">⭐ Pésimo</option>
+          </select>
+          <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Comentario</label>
+          <textarea id="swal-comment" class="w-full p-4 border rounded-xl h-32 bg-gray-50 outline-none focus:border-blue-500 resize-none" placeholder="¿Qué te gustó más? ¿Qué podría mejorar?"></textarea>
+        </div>
+      `,
+            showCancelButton: true, confirmButtonText: 'Publicar Reseña', confirmButtonColor: '#0ea5e9', cancelButtonText: 'Cancelar',
+            preConfirm: () => {
+                const rating = (document.getElementById('swal-rating') as HTMLSelectElement).value;
+                const comment = (document.getElementById('swal-comment') as HTMLTextAreaElement).value;
+                if (!comment) Swal.showValidationMessage('Por favor escribe un comentario');
+                return { calificacion: Number(rating), comentario: comment };
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const data = { productoId: this.product.productoId || this.product.id, ...result.value };
+                this.productService.addReview(data).subscribe({
+                    next: () => {
+                        Swal.fire('¡Gracias!', 'Tu reseña ha sido publicada.', 'success');
+                        this.productService.getReviews(this.product.id).subscribe(r => this.reviews = r);
+                    },
+                    error: (err: any) => Swal.fire('Ups', err.error?.message || 'Hubo un error al publicar', 'error')
+                });
+            }
+        });
+    }
+
+    handleImageError(event: any) {
+        event.target.src = 'https://static.vecteezy.com/system/resources/previews/022/059/000/non_2x/no-image-available-icon-vector.jpg';
+    }
+
+    isNew(dateString: string): boolean {
+        if (!dateString) return false;
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffTime = Math.abs(now.getTime() - date.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays <= 30;
+    }
+}
