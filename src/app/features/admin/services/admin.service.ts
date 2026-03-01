@@ -31,8 +31,17 @@ export class AdminService {
     return this.http.delete<any>(`${API_ROUTES.products.admin}/${id}`);
   }
 
-  getCategories(): Observable<any[]> {
+  toggleProduct(id: number): Observable<any> {
+    return this.http.patch<any>(`${API_ROUTES.products.admin}/${id}/toggle`, {});
+  }
+
+  getProductCategories(): Observable<any[]> {
     return this.http.get<any[]>(`${API_ROUTES.products.admin}/categories`);
+  }
+
+  // --- GESTIÓN DE CATEGORÍAS ---
+  getCategories(): Observable<any[]> {
+    return this.http.get<any[]>(API_ROUTES.admin.categories);
   }
 
   createCategory(data: any): Observable<any> {
@@ -52,24 +61,44 @@ export class AdminService {
     return this.http.get<any[]>(API_ROUTES.orders.admin);
   }
 
+  // ✅ Estados exactos como están en la BD
   getOrderStatuses(): Observable<any[]> {
-    return this.http.get<any[]>(`${API_ROUTES.orders.admin}/statuses`);
+    return new Observable(observer => {
+      observer.next([
+        { estadoId: 1, nombre: 'PENDIENTE' },
+        { estadoId: 2, nombre: 'PAGADO' },
+        { estadoId: 3, nombre: 'PROCESANDO' },
+        { estadoId: 4, nombre: 'ENVIADO' },
+        { estadoId: 5, nombre: 'ENTREGADO' },
+        { estadoId: 6, nombre: 'CANCELADO' },
+      ]);
+      observer.complete();
+    });
   }
 
+  // ✅ PUT /api/admin/orders/{id}/estado/{estadoId}
   updateOrderStatus(orderId: number, statusId: number): Observable<any> {
-    return this.http.put<any>(`${API_ROUTES.orders.admin}/${orderId}/status`, { estadoId: statusId });
+    return this.http.put<any>(`${API_ROUTES.orders.admin}/${orderId}/estado/${statusId}`, {});
   }
 
-  getOrderDetails(orderId: number): Observable<any[]> {
-    return this.http.get<any[]>(`${API_ROUTES.orders.admin}/${orderId}/details`);
+  // ✅ GET /api/orders/{id}/details
+  getOrderDetails(orderId: number): Observable<any> {
+    return this.http.get<any>(`${API_ROUTES.orders.base}/${orderId}/details`);
   }
 
   // --- GESTIÓN DE USUARIOS ---
-  getUsers(): Observable<any[]> {
-    return this.http.get<any[]>(API_ROUTES.adminUsers.base);
+  getUsers(search?: string): Observable<any[]> {
+    const url = search
+      ? `${API_ROUTES.adminUsers.base}?search=${search}`
+      : API_ROUTES.adminUsers.base;
+    return this.http.get<any[]>(url);
   }
 
   toggleUserStatus(userId: number): Observable<any> {
     return this.http.put<any>(`${API_ROUTES.adminUsers.base}/${userId}/toggle-status`, {});
+  }
+
+  assignPoints(userId: number, puntos: number): Observable<any> {
+    return this.http.post<any>(`${API_ROUTES.adminUsers.base}/${userId}/points`, { puntos });
   }
 }

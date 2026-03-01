@@ -24,6 +24,6 @@ export class ChatbotService {
   // # ENVIA EL MENSAJE DEL USUARIO AL BACKEND
   sendMessage(message: string): Observable<ChatResponse> {
     // EL BACKEND ESPERA UN OBJETO CON LA LLAVE 'message'
-    return this.http.post<ChatResponse>(API_ROUTES.chatbot.ask, { message });
+    return this.http.post<ChatResponse>(API_ROUTES.chatbot.ask, { question: message });
   }
 }
