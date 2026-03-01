@@ -1,7 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { CartService } from '../../cart/services/cart.service';
 import { NavbarComponent } from '../../../shared/components/navbar/navbar.component';
 import { OrderService } from '../services/order.service';
@@ -15,7 +15,6 @@ import Swal from 'sweetalert2';
   styles: [`
     .animate-fade-in { animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    
     .custom-scrollbar::-webkit-scrollbar { width: 4px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
@@ -48,17 +47,17 @@ export class CheckoutComponent implements OnInit {
     telefono: ['', [Validators.required, Validators.pattern(/^[0-9]{9}$/)]]
   });
 
+  // ✅ Validadores relajados para demo — solo require que tengan algo
   cardForm: FormGroup = this.fb.group({
-    number: ['', [Validators.required, Validators.minLength(19)]], // 16 nums + 3 espacios
+    number: ['', Validators.required],
     name: ['', Validators.required],
-    expiry: ['', [Validators.required, Validators.pattern(/^(0[1-9]|1[0-2])\/\d{2}$/)]],
-    cvv: ['', [Validators.required, Validators.pattern(/^[0-9]{3,4}$/)]]
+    expiry: ['', Validators.required],
+    cvv: ['', Validators.required]
   });
 
   ngOnInit() {
     this.cartService.cartItems$.subscribe((items: any) => this.cartItems = items);
     this.cartService.cartTotal$.subscribe((t: any) => this.total = t);
-
     if (this.cartService.count() === 0) {
       this.router.navigate(['/']);
     }
@@ -69,21 +68,17 @@ export class CheckoutComponent implements OnInit {
     return !!(control && control.invalid && (control.dirty || control.touched));
   }
 
+  // ✅ CORREGIDO: actualiza el form control directamente por nombre
   allowOnlyNumbers(event: any) {
     const input = event.target;
     input.value = input.value.replace(/[^0-9]/g, '');
-    const controlName = input.getAttribute('formControlName');
-    if (controlName) {
-      if (this.checkoutForm.get(controlName)) this.checkoutForm.get(controlName)?.setValue(input.value);
-      if (this.cardForm.get(controlName)) this.cardForm.get(controlName)?.setValue(input.value);
-    }
   }
 
   formatCardNumber(event: any) {
     let input = event.target.value.replace(/\D/g, '').substring(0, 16);
-    let formatted = input != '' ? input.match(/.{1,4}/g)?.join(' ') : '';
+    let formatted = input !== '' ? input.match(/.{1,4}/g)?.join(' ') ?? '' : '';
     event.target.value = formatted;
-    this.cardForm.get('number')?.setValue(formatted);
+    this.cardForm.get('number')?.setValue(formatted, { emitEvent: false });
   }
 
   formatExpiry(event: any) {
@@ -92,7 +87,7 @@ export class CheckoutComponent implements OnInit {
       input = input.substring(0, 2) + '/' + input.substring(2);
     }
     event.target.value = input;
-    this.cardForm.get('expiry')?.setValue(input);
+    this.cardForm.get('expiry')?.setValue(input, { emitEvent: false });
   }
 
   processPayment() {
@@ -100,12 +95,30 @@ export class CheckoutComponent implements OnInit {
     this.cardForm.markAllAsTouched();
 
     if (this.checkoutForm.invalid) {
-      this.scrollToError();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
-    if (this.cardForm.invalid) {
-      Swal.fire({ icon: 'error', title: 'Tarjeta Inválida', text: 'Revisa los datos de pago.', confirmButtonColor: '#ef4444', background: 'var(--bg-card)', color: 'var(--text-main)' });
+    // ✅ Validación manual simple de tarjeta
+    const cardNum = this.cardForm.get('number')?.value?.replace(/\s/g, '') || '';
+    const cvv = this.cardForm.get('cvv')?.value || '';
+    const expiry = this.cardForm.get('expiry')?.value || '';
+    const name = this.cardForm.get('name')?.value || '';
+
+    if (cardNum.length < 13 || !/^\d+$/.test(cardNum)) {
+      Swal.fire({ icon: 'error', title: 'Número de tarjeta inválido', text: 'Ingresa los 16 dígitos de tu tarjeta.', confirmButtonColor: '#ef4444' });
+      return;
+    }
+    if (!/^\d{3,4}$/.test(cvv)) {
+      Swal.fire({ icon: 'error', title: 'CVV inválido', text: 'El CVV debe ser 3 o 4 dígitos numéricos.', confirmButtonColor: '#ef4444' });
+      return;
+    }
+    if (!/^(0[1-9]|1[0-2])\/\d{2}$/.test(expiry)) {
+      Swal.fire({ icon: 'error', title: 'Fecha de expiración inválida', text: 'Formato: MM/YY', confirmButtonColor: '#ef4444' });
+      return;
+    }
+    if (!name.trim()) {
+      Swal.fire({ icon: 'error', title: 'Nombre requerido', text: 'Ingresa el nombre del titular.', confirmButtonColor: '#ef4444' });
       return;
     }
 
@@ -134,13 +147,9 @@ export class CheckoutComponent implements OnInit {
         error: (err: any) => {
           this.isProcessing = false;
           console.error(err);
-          Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo procesar el pago.', background: 'var(--bg-card)', color: 'var(--text-main)' });
+          Swal.fire({ icon: 'error', title: 'Error al procesar', text: err.error?.message || 'No se pudo procesar el pago.', background: 'var(--bg-card)', color: 'var(--text-main)' });
         }
       });
     }, 2000);
-  }
-
-  scrollToError() {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }

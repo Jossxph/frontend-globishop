@@ -95,7 +95,11 @@ import { APP_ROUTES } from '../../core/constants/app-routes';
 
         </nav>
 
-        <div class="p-4 border-t border-[var(--border-color)] shrink-0">
+        <div class="p-4 border-t border-[var(--border-color)] shrink-0 space-y-2">
+            <a routerLink="/" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--bg-input)] hover:bg-[var(--color-primary)] hover:text-white text-[var(--text-muted)] rounded-xl transition-all font-bold text-sm group border border-[var(--border-color)] hover:border-[var(--color-primary)]">
+                <i class="ri-home-4-line group-hover:scale-110 transition-transform"></i>
+                Ir al Home
+            </a>
             <button (click)="logout()" class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--bg-input)] hover:bg-[var(--color-error)] hover:text-white text-[var(--color-error)] rounded-xl transition-all font-bold text-sm group border border-[var(--border-color)] hover:border-[var(--color-error)]">
                 <i class="ri-logout-box-line group-hover:-translate-x-1 transition-transform"></i> 
                 Cerrar Sesión
@@ -116,7 +120,7 @@ import { APP_ROUTES } from '../../core/constants/app-routes';
             
             <div>
               <h2 class="text-xl font-bold text-[var(--text-main)]">Panel de Control</h2>
-              <p class="text-xs text-[var(--text-muted)]">Bienvenido de nuevo, {{ (authService.currentUser$ | async)?.nombre }}</p>
+              <p class="text-xs text-[var(--text-muted)]">Bienvenido de nuevo, {{ (authService.currentUser$ | async)?.nombreCompleto }}</p>
             </div>
 
             <div class="flex items-center gap-4">
@@ -129,7 +133,7 @@ import { APP_ROUTES } from '../../core/constants/app-routes';
 
                <div class="flex items-center gap-3">
                    <div class="text-right">
-                      <p class="text-sm font-bold text-[var(--text-main)]">{{ (authService.currentUser$ | async)?.nombre || 'Admin' }}</p>
+                      <p class="text-sm font-bold text-[var(--text-main)]">{{ (authService.currentUser$ | async)?.nombreCompleto || 'Admin' }}</p>
                       <span class="text-[10px] font-bold text-[var(--color-primary)] uppercase tracking-wider bg-[var(--color-primary)]/10 px-2 py-0.5 rounded-full block w-fit ml-auto">Activo</span>
                    </div>
                    <div class="w-10 h-10 rounded-full bg-[var(--bg-input)] border-2 border-[var(--border-color)] flex items-center justify-center text-[var(--text-muted)] font-bold shadow-sm">
@@ -206,7 +210,7 @@ export class AdminLayoutComponent {
 
   getUserInitial(): string {
     const user = JSON.parse(localStorage.getItem('user') || '{}');
-    const nombre = user.nombre;
+    const nombre = user.nombreCompleto;
     return nombre ? nombre.charAt(0).toUpperCase() : 'A';
   }
 }

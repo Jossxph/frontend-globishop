@@ -104,7 +104,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   handleImageError(event: any) {
-    event.target.src = 'https://via.placeholder.com/300x300?text=GlobiShop';
+    event.target.src = 'https://placehold.co/300x300?text=GlobiShop';
   }
 
   getIconForCategory(dbName: string): string {

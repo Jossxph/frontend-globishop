@@ -1,51 +1,61 @@
 import { environment } from '../../../environments/environment';
 
-const API = environment.apiBaseUrl;
+const AUTH    = environment.apiAuth;
+const PRODUCT = environment.apiProduct;
+const PEDIDO  = environment.apiPedido;
+const NOTIF   = environment.apiNotificacion;
 
 export const API_ROUTES = {
     auth: {
-        login: `${API}/api/auth/login`,
-        register: `${API}/api/auth/register`,
-        verify: `${API}/api/auth/verify`,
-        recoverPassword: `${API}/api/auth/recover-password`,
-        verifyCode: `${API}/api/auth/verify-code`,
-        resetPassword: `${API}/api/auth/reset-password`,
+        login:           `${AUTH}/api/auth/login`,
+        register:        `${AUTH}/api/auth/register`,
+        verify:          `${AUTH}/api/auth/verify`,
+        recoverPassword: `${AUTH}/api/auth/recover-password`,
+        verifyCode:      `${AUTH}/api/auth/verify-code`,
+        resetPassword:   `${AUTH}/api/auth/reset-password`,
     },
     profile: {
-        me: `${API}/api/profile`,
-        orders: `${API}/api/profile/orders`,
-        notifications: `${API}/api/profile/notifications`,
-        favorites: `${API}/api/profile/favorites`,
-        reviews: `${API}/api/profile/reviews`,
-        changePassword: `${API}/api/profile/change-password`,
-        requestEmailChange: `${API}/api/profile/request-email-change`,
-        confirmEmailChange: `${API}/api/profile/confirm-email-change`,
-        update: `${API}/api/profile/update`,
-        delete: `${API}/api/profile/delete`,
+        me:                 `${AUTH}/api/profile`,
+        orders:             `${AUTH}/api/profile/orders`,
+        notifications:      `${AUTH}/api/profile/notifications`,
+        favorites:          `${AUTH}/api/profile/favorites`,
+        reviews:            `${AUTH}/api/profile/reviews`,
+        changePassword:     `${AUTH}/api/profile/change-password`,
+        requestEmailChange: `${AUTH}/api/profile/request-email-change`,
+        confirmEmailChange: `${AUTH}/api/profile/confirm-email-change`,
+        update:             `${AUTH}/api/profile/update`,
+        delete:             `${AUTH}/api/profile/delete`,
     },
     products: {
-        public: `${API}/api/products`,
-        admin: `${API}/api/admin/products`,
+        public: `${PRODUCT}/api/products`,
+        admin:  `${PRODUCT}/api/admin/products`,
     },
     orders: {
-        orders: `${API}/api/orders`,
-        checkoutBuy: `${API}/api/checkout/buy`,
-        admin: `${API}/api/admin/orders`,
+        base:        `${PEDIDO}/api/orders`,
+        checkoutBuy: `${PEDIDO}/api/checkout/buy`,
+        admin:       `${PEDIDO}/api/admin/orders`,
     },
     reviews: {
-        base: `${API}/api/reviews`,
+        base: `${PRODUCT}/api/reviews`,
     },
     adminUsers: {
-        base: `${API}/api/admin/users`,
+        base: `${AUTH}/api/admin/users`,
     },
     categories: {
-        public: `${API}/api/products/categories`,
+        public: `${PRODUCT}/api/categorias`,
+        admin:  `${PRODUCT}/api/admin/categories`,
     },
     admin: {
-        stats: `${API}/api/admin/stats`,
-        categories: `${API}/api/admin/categories`,
+        stats:      `${PEDIDO}/api/admin/stats`,
+        categories: `${PRODUCT}/api/admin/categories`,
     },
     chatbot: {
-        ask: `${API}/api/chatbot/ask`,
+        ask: `${PRODUCT}/api/chatbot/ask`,
+    },
+    notifications: {
+        base: `${NOTIF}/api/notifications`,
+    },
+    favoritos: {
+        base: `${AUTH}/api/favoritos`,
     },
 } as const;

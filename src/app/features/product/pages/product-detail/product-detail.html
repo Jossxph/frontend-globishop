@@ -199,7 +199,7 @@
                             reviews.length }}</span>
                     </div>
 
-                    <button *ngIf="canReview" (click)="writeReview()"
+                    <button *ngIf="authService.isLoggedIn()" (click)="writeReview()"
                         class="group bg-card hover:bg-main hover:text-white border border-theme text-main px-6 py-3 rounded-xl font-bold transition-all shadow-sm hover:shadow-lg flex items-center gap-2">
                         <i class="ri-pencil-line text-lg group-hover:scale-110 transition-transform"></i>
                         Escribir mi opinión

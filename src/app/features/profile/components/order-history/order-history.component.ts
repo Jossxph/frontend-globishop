@@ -33,8 +33,8 @@ import Swal from 'sweetalert2';
               <td class="p-4 hidden sm:table-cell text-muted">{{ order.fechaPedido | date:'dd MMM yyyy' }}</td>
               <td class="p-4 font-bold text-main">S/ {{ order.total }}</td>
               <td class="p-4">
-                <span [class]="getEstadoClass(order.estado.nombre)" class="px-2.5 py-1 rounded-full text-[10px] font-bold border border-current opacity-90 inline-flex items-center gap-1">
-                  <span class="w-1.5 h-1.5 rounded-full bg-current"></span> {{ order.estado.nombre }}
+                <span [class]="getEstadoClass(order.estado?.nombre)" class="px-2.5 py-1 rounded-full text-[10px] font-bold border border-current opacity-90 inline-flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-current"></span> {{ order.estado?.nombre || 'PENDIENTE' }}
                 </span>
               </td>
               
@@ -44,20 +44,18 @@ import Swal from 'sweetalert2';
                     <i class="ri-eye-line"></i>
                   </button>
 
-                  <td class="p-4 flex gap-2">
+                  <!-- Boleta PDF -->
+                  <button (click)="downloadBoleta(order.pedidoId)" title="Ver Boleta"
+                      class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 flex items-center justify-center transition-colors">
+                      <i class="ri-file-text-line"></i>
+                  </button>
 
-                    <button *ngIf="order.estado.estadoId !== 5" (click)="downloadInvoice(order.pedidoId)" title="Ver Boleta"
-                        class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 flex items-center justify-center transition-colors">
-                        <i class="ri-file-text-line"></i>
-                    </button>
-
-                    <button *ngIf="order.estado.estadoId < 3 && canRefund(order.fechaPedido)" (click)="requestRefund(order)"
-                        title="Solicitar Reembolso"
-                        class="w-8 h-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center transition-colors">
-                        <i class="ri-refund-2-line"></i>
-                    </button>
-
-                </td>
+                  <!-- Devolución: solo si estado < 3 y dentro de 48h -->
+                  <button *ngIf="order.estado?.estadoId < 3 && canRefund(order.fechaPedido)" (click)="requestRefund(order)"
+                      title="Solicitar Devolución"
+                      class="w-8 h-8 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 flex items-center justify-center transition-colors">
+                      <i class="ri-refund-2-line"></i>
+                  </button>
                 </div>
               </td>
             </tr>
@@ -69,17 +67,14 @@ import Swal from 'sweetalert2';
                 <a routerLink="/" class="text-primary font-bold hover:underline text-sm mt-2 block cursor-pointer">Ir al catálogo</a>
               </td>
             </tr>
-
-            
           </tbody>
-
-          
         </table>
       </div>
     </div>
 
+    <!-- Modal detalle -->
     <div *ngIf="selectedOrder" class="fixed inset-0 z-[100] flex items-center justify-center px-4 animate-fade-in-up">
-      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity" (click)="selectedOrder = null"></div>
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" (click)="selectedOrder = null"></div>
       
       <div class="bg-card w-full max-w-lg rounded-3xl shadow-2xl relative z-10 overflow-hidden border border-theme flex flex-col max-h-[80vh]">
         <div class="p-5 border-b border-theme flex justify-between items-center bg-input/50">
@@ -98,17 +93,19 @@ import Swal from 'sweetalert2';
              <p class="text-xs text-muted mt-2">Cargando productos...</p>
            </div>
 
-           <div *ngFor="let item of orderDetails" class="flex gap-4 items-center bg-input/30 p-3 rounded-2xl border border-theme">
-              <div class="w-16 h-16 bg-card rounded-xl p-1 shrink-0 flex items-center justify-center border border-theme">
-                 <img [src]="item.producto.imagenUrl || 'https://via.placeholder.com/60'" class="max-w-full max-h-full object-contain mix-blend-multiply dark:mix-blend-normal">
-              </div>
-              <div class="flex-1 min-w-0">
-                <p class="text-[10px] text-primary uppercase font-bold tracking-wider">{{ item.producto.categoria?.nombre || 'General' }}</p>
-                <h4 class="font-bold text-main text-sm truncate">{{ item.producto.nombre }}</h4>
-                <p class="text-xs text-muted mt-0.5">Cantidad: <span class="font-bold text-main">{{ item.cantidad }}</span></p>
-              </div>
-              <p class="font-black text-main text-lg">S/ {{ item.precioUnitario }}</p>
-           </div>
+           <ng-container *ngIf="!loadingDetails">
+             <!-- El backend devuelve { pedido, detalles } -->
+             <div *ngFor="let item of orderDetails" class="flex gap-4 items-center bg-input/30 p-3 rounded-2xl border border-theme">
+                <div class="w-16 h-16 bg-card rounded-xl p-1 shrink-0 flex items-center justify-center border border-theme">
+                   <img [src]="'https://via.placeholder.com/60'" class="max-w-full max-h-full object-contain">
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h4 class="font-bold text-main text-sm">Producto ID: {{ item.productoId }}</h4>
+                  <p class="text-xs text-muted mt-0.5">Cantidad: <span class="font-bold text-main">{{ item.cantidad }}</span></p>
+                </div>
+                <p class="font-black text-main text-lg">S/ {{ item.precioUnitario }}</p>
+             </div>
+           </ng-container>
         </div>
 
         <div class="p-5 border-t border-theme bg-card flex justify-between items-end">
@@ -138,46 +135,27 @@ export class OrderHistoryComponent implements OnInit {
     this.loading = true;
     this.profileService.getOrders().subscribe({
       next: (data: any) => {
-        this.orders = data;
+        this.orders = Array.isArray(data) ? data : [];
         this.loading = false;
       },
       error: () => this.loading = false
     });
   }
 
-  downloadInvoice(orderId: number) {
-    const toast = Swal.mixin({
-      toast: true,
-      position: 'top-end',
-      showConfirmButton: false,
-      timer: 2000,
-      timerProgressBar: true,
-      didOpen: (toast) => {
-        toast.addEventListener('mouseenter', Swal.stopTimer)
-        toast.addEventListener('mouseleave', Swal.resumeTimer)
-      }
-    });
-    toast.fire({
-      icon: 'info', title: 'Generando PDF...',
-      confirmButtonColor: '#3085d6',
-      confirmButtonText: 'OK'
-    });
+  // ✅ CORREGIDO: usa /api/orders/{id}/boleta
+  downloadBoleta(orderId: number) {
+    Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 2000 })
+        .fire({ icon: 'info', title: 'Generando PDF...' });
 
-    this.orderService.downloadInvoice(orderId).subscribe({
+    this.orderService.downloadBoleta(orderId).subscribe({
       next: (blob: Blob) => {
         const url = window.URL.createObjectURL(blob);
-
         window.open(url, '_blank');
-
         setTimeout(() => window.URL.revokeObjectURL(url), 10000);
       },
-      error: (err: any) => {
-        console.error(err);
-        Swal.fire('Error', 'No se pudo descargar la boleta.', 'error');
-      }
+      error: () => Swal.fire('Error', 'No se pudo descargar la boleta.', 'error')
     });
   }
-
 
   openOrderDetail(order: any) {
     this.selectedOrder = order;
@@ -185,45 +163,33 @@ export class OrderHistoryComponent implements OnInit {
     this.loadingDetails = true;
     this.profileService.getOrderDetail(order.pedidoId).subscribe({
       next: (res: any) => {
-        this.orderDetails = res;
+        // backend devuelve { pedido, detalles }
+        this.orderDetails = res?.detalles || res || [];
         this.loadingDetails = false;
       },
       error: () => this.loadingDetails = false
     });
   }
 
+  // ✅ CORREGIDO: usa /api/orders/{id}/devolucion (sin código)
   requestRefund(order: any) {
     Swal.fire({
-      title: 'Solicitar Reembolso',
-      html: `
-        <div class="text-left">
-          <p class="text-sm text-gray-500 mb-4">
-            Ingresa el <b>Código de Seguridad</b> que enviamos a tu correo del pedido <b>#${order.pedidoId}</b>.
-          </p>
-          <div class="bg-blue-50 p-3 rounded-lg text-xs text-blue-600 mb-4 border border-blue-100 flex gap-2 items-start">
-             <i class="ri-information-line text-lg"></i>
-             <span>Al confirmar, el stock se restaurará y el pedido se cancelará.</span>
-          </div>
-        </div>
-      `,
-      input: 'text',
-      inputPlaceholder: 'Ej: TRANS-123...',
+      title: '¿Solicitar Devolución?',
+      html: `<p class="text-sm text-gray-500">Se cancelará el pedido <b>#${order.pedidoId}</b> y se procesará el reembolso.</p>`,
+      icon: 'warning',
       showCancelButton: true,
-      confirmButtonText: 'Confirmar Reembolso',
+      confirmButtonText: 'Sí, devolver',
       confirmButtonColor: '#dc2626',
-      showLoaderOnConfirm: true,
-      preConfirm: (code) => {
-        if (!code) {
-          Swal.showValidationMessage('Debes ingresar el código');
-          return false;
-        }
-        return this.orderService.refundOrder(order.pedidoId, code).toPromise()
-          .catch((error: any) => Swal.showValidationMessage(`Error: ${error.error?.message || 'Código incorrecto'}`));
-      }
+      cancelButtonText: 'Cancelar',
     }).then((result) => {
       if (result.isConfirmed) {
-        Swal.fire('¡Reembolsado!', result.value.message, 'success');
-        this.loadOrders();
+        this.orderService.requestRefund(order.pedidoId).subscribe({
+          next: (res: any) => {
+            Swal.fire('¡Devolución procesada!', res.message || 'Tu pedido fue cancelado.', 'success');
+            this.loadOrders();
+          },
+          error: (err: any) => Swal.fire('Error', err.error?.message || 'No se pudo procesar.', 'error')
+        });
       }
     });
   }

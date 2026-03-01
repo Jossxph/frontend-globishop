@@ -16,7 +16,7 @@ import { APP_ROUTES } from '../../../core/constants/app-routes';
   templateUrl: './navbar.html'
 })
 export class NavbarComponent implements OnInit {
-  private authService = inject(AuthService);
+  public authService = inject(AuthService);
   private productService = inject(ProductService);
   public cartService = inject(CartService);
   private router = inject(Router);

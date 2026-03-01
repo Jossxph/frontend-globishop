@@ -56,22 +56,29 @@
                     </div>
                 </ng-container>
 
-                <div *ngIf="currentUser" class="relative hidden md:block" (clickOutside)="isProfileOpen = false">
+                <div *ngIf="currentUser" class="relative hidden md:flex items-center gap-3" (clickOutside)="isProfileOpen = false">
+                    <!-- Botón Panel solo para admin -->
+                    <a *ngIf="authService.isAdmin()" routerLink="/admin"
+                        class="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-bold rounded-full hover:brightness-110 transition-all shadow-md">
+                        <i class="ri-dashboard-line"></i> Panel
+                    </a>
+                    <!-- Avatar con dropdown -->
                     <button (click)="isProfileOpen = !isProfileOpen"
                         class="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full border border-transparent hover:border-theme hover:bg-input transition-all">
-                        <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-primary p-0.5">
+                        <div class="w-9 h-9 rounded-full bg-gradient-to-br from-blue-400 to-primary p-0.5">
                             <img *ngIf="currentUser.fotoUrl" [src]="currentUser.fotoUrl"
                                 class="w-full h-full rounded-full object-cover bg-card">
                             <div *ngIf="!currentUser.fotoUrl"
-                                class="w-full h-full rounded-full bg-card flex items-center justify-center text-xs font-bold text-primary">
-                                {{ currentUser.nombre?.charAt(0) }}</div>
+                                class="w-full h-full rounded-full bg-card flex items-center justify-center text-sm font-bold text-primary">
+                                {{ (currentUser.nombreCompleto || currentUser.nombre || "U").charAt(0).toUpperCase() }}
+                            </div>
                         </div>
                     </button>
                     <div *ngIf="isProfileOpen"
                         class="absolute top-full right-0 mt-2 w-56 bg-card border border-theme rounded-2xl shadow-xl overflow-hidden animate-fade-in-up py-1">
                         <div class="px-4 py-3 border-b border-theme bg-input/30">
                             <p class="text-xs text-muted font-bold uppercase">Hola,</p>
-                            <p class="text-sm font-bold text-main truncate">{{ currentUser.nombre }}</p>
+                            <p class="text-sm font-bold text-main truncate">{{ (currentUser.nombreCompleto || currentUser.nombre || "").split(" ")[0] }}</p>
                         </div>
                         <a [routerLink]="['/' + ROUTES.PROFILE]"
                             class="flex items-center gap-3 px-4 py-3 hover:bg-input text-sm text-main"><i
